@@ -1,0 +1,452 @@
+/* ── Design tokens ── */
+:root {
+  --ink: #201c1d;
+  --green: #c4e012;
+  --orange: #e0914f;
+  --white: #ffffff;
+  --off: #f6f5f3;
+  --rule: #e6e4e0;
+  --mid: #7a7672;
+  --light: #aaa79f;
+  --red: #c0392b;
+
+  --radius-card: 12px;
+  --radius-btn: 6px;
+  --radius-avatar: 50%;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-fab: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  --nav-height: 72px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--off);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Scrollable areas ── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll::-webkit-scrollbar { display: none; }
+
+/* ── Typography helpers ── */
+.bc { font-family: 'Barlow Condensed', sans-serif; }
+.bc-800 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; }
+.bc-700 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; }
+.upper { text-transform: uppercase; }
+.ls { letter-spacing: 1.5px; }
+.ls-2 { letter-spacing: 2px; }
+
+/* ── Common button styles ── */
+button {
+  font-family: 'Barlow', sans-serif;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: 'Barlow', sans-serif;
+}
+
+/* ── Avatar ── */
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* ── Status bar spacer (iOS safe area) ── */
+.status-spacer {
+  height: env(safe-area-inset-top, 44px);
+  background: var(--ink);
+  flex-shrink: 0;
+}
+
+/* ── Bottom nav ── */
+.bottom-nav {
+  display: flex;
+  border-top: 1.5px solid var(--rule);
+  background: var(--white);
+  padding: 8px 0;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 16px));
+  flex-shrink: 0;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 0;
+  background: none;
+  border: none;
+}
+
+.nav-icon { font-size: 20px; }
+
+.nav-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--light);
+}
+
+.nav-tab.active .nav-label { color: var(--ink); }
+.nav-tab.admin .nav-label { color: var(--orange); }
+
+/* ── App bar ── */
+.app-bar {
+  height: 52px;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.app-bar-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white);
+}
+
+.app-bar-back {
+  position: absolute;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 24px;
+  padding: 8px;
+  line-height: 1;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  margin: 0 14px;
+}
+
+.card + .card { margin-top: 10px; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0ede8;
+}
+
+.card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--ink);
+}
+
+/* ── Section label ── */
+.section-label {
+  padding: 16px 16px 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--light);
+}
+
+/* ── Primary button ── */
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: var(--ink);
+  color: var(--green);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  display: block;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: var(--light);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  display: block;
+  margin-top: 8px;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 14px;
+  background: var(--red);
+  color: var(--white);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+}
+
+.btn-danger:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Form fields ── */
+.form-field { margin-bottom: 14px; }
+
+.form-field label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--light);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius-btn);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--white);
+  outline: none;
+  appearance: none;
+}
+
+.form-input:focus { border-color: var(--ink); }
+.form-input::placeholder { color: #cbc8c2; }
+
+textarea.form-input {
+  resize: none;
+  line-height: 1.5;
+}
+
+/* ── Toggle ── */
+.toggle {
+  width: 46px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--rule);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  border: none;
+}
+
+.toggle.on { background: var(--green); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.toggle.on .toggle-thumb { transform: translateX(20px); }
+
+/* ── Bottom sheet overlay ── */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 28, 29, 0.75);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  background: var(--white);
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  border-radius: 20px 20px 0 0;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--rule);
+  border-radius: 2px;
+  margin: 14px auto 0;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 44px) + 16px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background: var(--ink);
+  color: var(--green);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  white-space: nowrap;
+  z-index: 300;
+  animation: toastIn 0.3s ease forwards;
+}
+
+@keyframes toastIn {
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+/* ── Hero stats strip ── */
+.hero-stats {
+  display: flex;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-stat {
+  flex: 1;
+  padding: 11px 8px;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-stat:last-child { border-right: none; }
+
+.hero-stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1;
+}
+
+.hero-stat-val.green { color: var(--green); }
+.hero-stat-val.red { color: #e07070; }
+
+.hero-stat-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+/* ── Confetti canvas ── */
+#confetti-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* ── Spinner ── */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--rule);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Loading screen ── */
+.loading-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--off);
+}
