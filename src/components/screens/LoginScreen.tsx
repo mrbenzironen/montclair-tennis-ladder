@@ -32,7 +32,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     const balls = Array.from({ length: 3 }, (_, i) => ({
       x: [canvas.width * 0.1, canvas.width * 0.9, canvas.width * 0.5][i],
       y: [canvas.height + 20, canvas.height * 0.4, -30][i],
-      r: [26, 19, 13][i],
+      r: [36, 28, 20][i],
       rot: 0,
       rotSpeed: [(Math.random() - 0.5) * 0.06, -(Math.random()) * 0.05, (Math.random()) * 0.07][i],
       vx: [1.8, -1.4, 0.3][i],
