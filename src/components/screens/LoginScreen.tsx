@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const LOGO_URL = 'https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png'
+const BALL = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'><circle cx='36' cy='36' r='34' fill='%23c4e012'/><path d='M27 18 Q36 36 27 54' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' opacity='0.75'/><path d='M45 18 Q36 36 45 54' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' opacity='0.75'/></svg>`
 
 interface LoginScreenProps {
   onLogin: () => void
@@ -63,7 +64,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           0%   { transform: translate(20px, 420px) rotate(0deg); opacity: 0; }
           6%   { opacity: 1; }
           94%  { opacity: 1; }
-          100% { transform: translate(340px, -60px) rotate(720deg); opacity: 0; }
+          100% { transform: translate(340px, -80px) rotate(720deg); opacity: 0; }
         }
         @keyframes ball2 {
           0%   { transform: translate(320px, 160px) rotate(0deg); opacity: 0; }
@@ -72,24 +73,25 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           100% { transform: translate(-40px, 520px) rotate(-600deg); opacity: 0; }
         }
         @keyframes ball3 {
-          0%   { transform: translate(160px, -50px) rotate(0deg); opacity: 0; }
-          6%   { opacity: 0.75; }
-          94%  { opacity: 0.75; }
-          100% { transform: translate(60px, 560px) rotate(540deg); opacity: 0; }
+          0%   { transform: translate(160px, -60px) rotate(0deg); opacity: 0; }
+          6%   { opacity: 0.8; }
+          94%  { opacity: 0.8; }
+          100% { transform: translate(60px, 540px) rotate(540deg); opacity: 0; }
         }
-        .tball1 { position: absolute; width: 56px; height: 56px; animation: ball1 7s ease-in-out infinite; pointer-events: none; }
-        .tball2 { position: absolute; width: 40px; height: 40px; animation: ball2 9s ease-in-out infinite; pointer-events: none; }
-        .tball3 { position: absolute; width: 28px; height: 28px; animation: ball3 11s ease-in-out infinite; pointer-events: none; }
+        .tball { position: absolute; width: 44px; height: 44px; pointer-events: none; border-radius: 50%; }
+        .tball1 { animation: ball1 7s ease-in-out infinite; }
+        .tball2 { animation: ball2 9s ease-in-out infinite; }
+        .tball3 { animation: ball3 11s ease-in-out infinite; }
       `}</style>
 
       <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px 24px', overflow: 'hidden' }}>
-        <img className="tball1" src={LOGO_URL} alt="" />
-        <img className="tball2" src={LOGO_URL} alt="" />
-        <img className="tball3" src={LOGO_URL} alt="" />
+        <img className="tball tball1" src={BALL} alt="" />
+        <img className="tball tball2" src={BALL} alt="" />
+        <img className="tball tball3" src={BALL} alt="" />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <img src={LOGO_URL} alt="Montclair Tennis Ladder" style={{ height: 90, width: 'auto', objectFit: 'contain', marginBottom: 10 }} />
+          <img src={LOGO_URL} alt="Tennis Ladder" style={{ height: 90, width: 'auto', objectFit: 'contain', marginBottom: 10 }} />
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, color: '#201c1d', marginBottom: 4 }}>
-            Montclair Tennis Ladder
+            Tennis Ladder
           </div>
           <div style={{ fontSize: 12, color: '#aaa79f', fontWeight: 300 }}>
             Competitive ladder play · Montclair, NJ
