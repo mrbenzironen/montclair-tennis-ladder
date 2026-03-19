@@ -148,7 +148,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
         />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <img src="https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/assets/logo.png" alt="logo" style={{ height: 90, width: "auto", objectFit: "contain", marginBottom: 10 }} />
+          <img src="https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png" alt="logo" style={{ height: 90, width: "auto", objectFit: "contain", marginBottom: 10 }} />
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, color: '#201c1d', marginBottom: 4 }}>
             Montclair Tennis Ladder
           </div>
