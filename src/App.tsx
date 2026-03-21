@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
-import { LoginScreen } from './components/screens/LoginScreen'
+import { LoginScreen, SignupSelfieStep, PENDING_SELFIE_KEY } from './components/screens/LoginScreen'
 import { LadderScreen } from './components/screens/LadderScreen'
 import { ChallengesScreen } from './components/screens/ChallengesScreen'
 import { RulesScreen } from './components/screens/RulesScreen'
@@ -9,11 +9,43 @@ import { AdminScreen } from './components/screens/AdminScreen'
 import { TabName } from './types'
 
 export default function App() {
-  const { session, user } = useAuth()
+  const { session, user, loading, refreshProfile } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
+
+  if (loading) {
+    return (
+      <div className="loading-screen" style={{ flex: 1 }}>
+        <div>
+          <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>🎾</div>
+          <div className="spinner" />
+        </div>
+      </div>
+    )
+  }
 
   if (!session || !user) {
     return <LoginScreen onLogin={() => {}} />
+  }
+
+  const pendingSelfie =
+    typeof sessionStorage !== 'undefined' &&
+    session.user.id === sessionStorage.getItem(PENDING_SELFIE_KEY)
+
+  if (pendingSelfie) {
+    return (
+      <>
+        <div className="status-spacer" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <SignupSelfieStep
+            userId={session.user.id}
+            onComplete={() => {
+              sessionStorage.removeItem(PENDING_SELFIE_KEY)
+              void refreshProfile()
+            }}
+          />
+        </div>
+      </>
+    )
   }
 
   const isAdmin = user.profile?.is_admin ?? false
