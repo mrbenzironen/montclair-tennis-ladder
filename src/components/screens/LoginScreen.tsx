@@ -395,21 +395,70 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px 24px' }}>
-        <img src={LOGO_URL} alt="Tennis Ladder" style={{ height: 110, width: 'auto', objectFit: 'contain', marginBottom: 16 }} />
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, color: '#201c1d', marginBottom: 6 }}>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        background: '#fff',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Compact header — does not grow; leaves vertical space for the form */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '12px 20px 10px',
+          textAlign: 'center',
+        }}
+      >
+        <img
+          src={LOGO_URL}
+          alt="Tennis Ladder"
+          style={{
+            height: 64,
+            width: 'auto',
+            maxWidth: 'min(200px, 55vw)',
+            objectFit: 'contain',
+            marginBottom: 8,
+          }}
+        />
+        <div
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 19,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: 1.5,
+            color: '#201c1d',
+            marginBottom: 2,
+            lineHeight: 1.1,
+          }}
+        >
           Tennis Ladder
         </div>
-        <div style={{ fontSize: 13, color: '#aaa79f', fontWeight: 300 }}>
+        <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.35 }}>
           Competitive ladder play · Montclair, NJ
         </div>
       </div>
 
-      <div style={{ background: '#fff', padding: '24px 28px 36px', borderTop: '1.5px solid #e6e4e0' }}>
+      <div
+        className="scroll"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          background: '#fff',
+          padding: '14px 20px calc(20px + env(safe-area-inset-bottom, 0px))',
+          borderTop: '1.5px solid #e6e4e0',
+        }}
+      >
 
-        <div style={{ display: 'flex', marginBottom: 20, background: '#f6f5f3', borderRadius: 8, padding: 4 }}>
+        <div style={{ display: 'flex', marginBottom: 16, background: '#f6f5f3', borderRadius: 8, padding: 4, flexShrink: 0 }}>
           <button
             type="button"
             onClick={() => { setIsSignUp(true); setError('') }}
@@ -494,7 +543,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
           )}
 
-          <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15 }}>
+          <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15, marginBottom: 8 }}>
             {loading ? 'Setting up your account…' : isSignUp ? 'Create My Account →' : 'Sign In →'}
           </button>
         </form>
