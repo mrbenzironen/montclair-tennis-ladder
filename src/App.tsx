@@ -9,16 +9,8 @@ import { AdminScreen } from './components/screens/AdminScreen'
 import { TabName } from './types'
 
 export default function App() {
-  const { session, user, loading } = useAuth()
+  const { session, user } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
-
-  if (loading) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f5f3' }}>
-        <div className="spinner" />
-      </div>
-    )
-  }
 
   if (!session || !user) {
     return <LoginScreen onLogin={() => {}} />
