@@ -19,17 +19,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function loadProfile(userId: string, email: string) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('*, ladder:ladders(*)')
-      .eq('id', userId)
-      .single()
+    try {
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
-    setUser({
-      id: userId,
-      email,
-      profile: profile as User | null,
-    })
+      if (error) {
+        console.error('Profile load error:', error)
+        setUser({ id: userId, email, profile: null })
+        return
+      }
+
+      // Load ladder separately if ladder_id exists
+      let ladder = null
+      if (profile?.ladder_id) {
+        const { data: ladderData } = await supabase
+          .from('ladders')
+          .select('*')
+          .eq('id', profile.ladder_id)
+          .single()
+        ladder = ladderData
+      }
+
+      setUser({
+        id: userId,
+        email,
+        profile: { ...profile, ladder } as User,
+      })
+    } catch (e) {
+      console.error('loadProfile error:', e)
+      setUser({ id: userId, email, profile: null })
+    }
   }
 
   async function refreshProfile() {
@@ -39,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session?.user) {
@@ -51,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session)
