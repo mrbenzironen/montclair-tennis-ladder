@@ -14,9 +14,11 @@ export function LadderScreen() {
   const ladderName = user?.profile?.ladder?.name ?? 'Advanced'
 
   if (selectedPlayer) {
+    const row = selectedPlayer as User & { isEligible?: boolean }
     return (
       <PlayerProfileScreen
         player={selectedPlayer}
+        canChallenge={row.isEligible === true}
         onBack={() => setSelectedPlayer(null)}
         onChallenge={(p) => { setSelectedPlayer(null); setChallengeTarget(p) }}
       />

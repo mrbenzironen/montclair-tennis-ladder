@@ -32,6 +32,19 @@ export async function sendChallenge(
     throw new Error('No wildcards available')
   }
 
+  // Challenged player is locked: one incoming pending or accepted (unplayed) challenge at a time
+  const { data: targetBusy } = await supabase
+    .from('challenges')
+    .select('id')
+    .eq('challenged_id', challengedId)
+    .in('status', ['pending', 'accepted'])
+
+  if (targetBusy && targetBusy.length > 0) {
+    throw new Error(
+      'That player already has an active challenge. They can be challenged again after they decline or finish the match.'
+    )
+  }
+
   // Check existing challenges
   const { data: existing } = await supabase
     .from('challenges')

@@ -5,11 +5,13 @@ import { useAuth } from '../../hooks/useAuth'
 
 interface Props {
   player: User
+  /** When false, hide challenge CTA (rank rules or player already has an active incoming challenge). */
+  canChallenge?: boolean
   onBack: () => void
   onChallenge: (player: User) => void
 }
 
-export function PlayerProfileScreen({ player, onBack, onChallenge }: Props) {
+export function PlayerProfileScreen({ player, canChallenge = true, onBack, onChallenge }: Props) {
   const { user } = useAuth()
   const [matches, setMatches] = useState<Match[]>([])
   const [showFab, setShowFab] = useState(false)
@@ -129,16 +131,21 @@ export function PlayerProfileScreen({ player, onBack, onChallenge }: Props) {
           </>
         )}
 
-        {!showFab && (
+        {!showFab && canChallenge && (
           <div style={{ textAlign: 'center', padding: '20px 16px 0', fontSize: 12, color: '#cbc8c2' }}>
             👆 Tap anywhere to challenge {player.full_name.split(' ')[0]}
+          </div>
+        )}
+        {!showFab && !canChallenge && (
+          <div style={{ textAlign: 'center', padding: '20px 16px 0', fontSize: 12, color: '#cbc8c2', lineHeight: 1.45 }}>
+            This player can’t be challenged right now (ladder range or they already have an active challenge to respond to or play).
           </div>
         )}
         <div style={{ height: 24 }} />
       </div>
 
       {/* FAB */}
-      {showFab && (
+      {showFab && canChallenge && (
         <div style={{ position: 'absolute', bottom: 90, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 50 }}>
           <button
             onClick={() => onChallenge(player)}
