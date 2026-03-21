@@ -1,72 +1,105 @@
-import { useState } from 'react'
-import { useAuth } from './hooks/useAuth'
-import { LoginScreen } from './components/screens/LoginScreen'
-import { LadderScreen } from './components/screens/LadderScreen'
-import { ChallengesScreen } from './components/screens/ChallengesScreen'
-import { RulesScreen } from './components/screens/RulesScreen'
-import { ProfileScreen } from './components/screens/ProfileScreen'
-import { AdminScreen } from './components/screens/AdminScreen'
-import { TabName } from './types'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { Session } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
+import { User, AuthUser } from '../types'
 
-export default function App() {
-  const { session, user, loading } = useAuth()
-  const [tab, setTab] = useState<TabName>('ladder')
+interface AuthContextType {
+  session: Session | null
+  user: AuthUser | null
+  loading: boolean
+  signOut: () => Promise<void>
+  refreshProfile: () => Promise<void>
+}
 
-  if (loading) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f5f3' }}>
-        <div className="spinner" />
-      </div>
-    )
-  }
+const AuthContext = createContext<AuthContextType | null>(null)
 
-  if (!session || !user) {
-    return <LoginScreen onLogin={() => {}} />
-  }
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const isAdmin = user.profile?.is_admin ?? false
+  async function loadProfile(userId: string, email: string) {
+    try {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
-  function renderScreen() {
-    switch (tab) {
-      case 'ladder': return <LadderScreen />
-      case 'challenges': return <ChallengesScreen />
-      case 'rules': return <RulesScreen />
-      case 'profile': return <ProfileScreen />
-      case 'admin': return isAdmin ? <AdminScreen /> : <LadderScreen />
-      default: return <LadderScreen />
+      if (!profile) {
+        setUser({ id: userId, email, profile: null })
+        return
+      }
+
+      let ladder = null
+      if (profile.ladder_id) {
+        const { data: ladderData } = await supabase
+          .from('ladders')
+          .select('*')
+          .eq('id', profile.ladder_id)
+          .single()
+        ladder = ladderData
+      }
+
+      setUser({
+        id: userId,
+        email,
+        profile: { ...profile, ladder } as User,
+      })
+    } catch (e) {
+      console.error('loadProfile error:', e)
+      setUser({ id: userId, email, profile: null })
+    } finally {
+      setLoading(false)
     }
   }
 
+  async function refreshProfile() {
+    if (session?.user) {
+      await loadProfile(session.user.id, session.user.email ?? '')
+    }
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      if (session?.user) {
+        loadProfile(session.user.id, session.user.email ?? '')
+      } else {
+        setLoading(false)
+      }
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        if (session?.user) {
+          await loadProfile(session.user.id, session.user.email ?? '')
+        } else {
+          setUser(null)
+          setLoading(false)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function signOut() {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSession(null)
+  }
+
   return (
-    <>
-      <div className="status-spacer" />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {renderScreen()}
-      </div>
-      <nav className="bottom-nav">
-        <button className={`nav-tab ${tab === 'ladder' ? 'active' : ''}`} onClick={() => setTab('ladder')}>
-          <span className="nav-icon">🏆</span>
-          <span className="nav-label">Ladder</span>
-        </button>
-        <button className={`nav-tab ${tab === 'challenges' ? 'active' : ''}`} onClick={() => setTab('challenges')}>
-          <span className="nav-icon">⚡</span>
-          <span className="nav-label">Challenges</span>
-        </button>
-        <button className={`nav-tab ${tab === 'rules' ? 'active' : ''}`} onClick={() => setTab('rules')}>
-          <span className="nav-icon">📋</span>
-          <span className="nav-label">Rules</span>
-        </button>
-        <button className={`nav-tab ${tab === 'profile' ? 'active' : ''}`} onClick={() => setTab('profile')}>
-          <span className="nav-icon">👤</span>
-          <span className="nav-label">Profile</span>
-        </button>
-        {isAdmin && (
-          <button className={`nav-tab admin ${tab === 'admin' ? 'active' : ''}`} onClick={() => setTab('admin')}>
-            <span className="nav-icon">⚙️</span>
-            <span className="nav-label" style={{ color: '#e0914f' }}>Admin</span>
-          </button>
-        )}
-      </nav>
-    </>
+    <AuthContext.Provider value={{ session, user, loading, signOut, refreshProfile }}>
+      {children}
+    </AuthContext.Provider>
   )
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }
