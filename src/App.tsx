@@ -13,7 +13,7 @@ export default function App() {
   const [tab, setTab] = useState<TabName>('ladder')
 
   if (!session || !user) {
-    return <LoginScreen onLogin={() => {}} />
+    return <LoginScreen onLogin={() => setTab('ladder')} />
   }
 
   const isAdmin = user.profile?.is_admin ?? false
