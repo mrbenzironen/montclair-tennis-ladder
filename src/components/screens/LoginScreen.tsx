@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const LOGO_URL = 'https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png'
@@ -17,62 +17,71 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleEmailAuth(e: React.FormEvent) {
+  async function handleEmailAuth(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    if (isSignUp) {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: `${firstName} ${lastName}`.trim() } },
-      })
+    try {
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: `${firstName} ${lastName}`.trim() } },
+        })
 
-      if (error) {
-        setError(error.message)
-        setLoading(false)
+        if (error) {
+          setError(error.message)
+          return
+        }
+
+        // Assign ladder immediately after signup
+        if (data.user) {
+          const { data: ladderData } = await supabase
+            .from('ladders')
+            .select('id')
+            .eq('name', ladder)
+            .single()
+
+          if (ladderData) {
+            // Get current max rank in that ladder
+            const { data: maxRankData } = await supabase
+              .from('users')
+              .select('rank')
+              .eq('ladder_id', ladderData.id)
+              .order('rank', { ascending: false })
+              .limit(1)
+
+            const newRank = maxRankData && maxRankData.length > 0 ? (maxRankData[0].rank ?? 0) + 1 : 1
+
+            await supabase
+              .from('users')
+              .update({
+                ladder_id: ladderData.id,
+                rank: newRank,
+                last_active_at: new Date().toISOString(),
+              })
+              .eq('id', data.user.id)
+          }
+        }
+
+        onLogin()
         return
       }
 
-      // Assign ladder immediately after signup
-      if (data.user) {
-        const { data: ladderData } = await supabase
-          .from('ladders')
-          .select('id')
-          .eq('name', ladder)
-          .single()
-
-        if (ladderData) {
-          // Get current max rank in that ladder
-          const { data: maxRankData } = await supabase
-            .from('users')
-            .select('rank')
-            .eq('ladder_id', ladderData.id)
-            .order('rank', { ascending: false })
-            .limit(1)
-
-          const newRank = maxRankData && maxRankData.length > 0 ? (maxRankData[0].rank ?? 0) + 1 : 1
-
-          await supabase
-            .from('users')
-            .update({
-              ladder_id: ladderData.id,
-              rank: newRank,
-              last_active_at: new Date().toISOString(),
-            })
-            .eq('id', data.user.id)
-        }
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setError(error.message)
+        return
       }
 
       onLogin()
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
-      else onLogin()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to sign in. Please try again.'
+      setError(message)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -154,7 +163,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           )}
 
           <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15 }}>
-            {loading ? 'Setting up your account…' : isSignUp ? 'Create My Account →' : 'Sign In →'}
+            {loading ? (isSignUp ? 'Setting up your account…' : 'Signing you in…') : isSignUp ? 'Create My Account →' : 'Sign In →'}
           </button>
         </form>
       </div>
