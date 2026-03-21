@@ -70,17 +70,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session)
-        if (session?.user) {
-          await loadProfile(session.user.id, session.user.email ?? '')
-        } else {
-          setUser(null)
-          setLoading(false)
-        }
+    // Do not await Supabase calls inside this callback — it shares the auth lock and can
+    // deadlock signInWithPassword (promise never resolves). loadProfile sets loading false in its own finally.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session)
+      if (session?.user) {
+        queueMicrotask(() => {
+          void loadProfile(session.user.id, session.user.email ?? '')
+        })
+      } else {
+        setUser(null)
+        setLoading(false)
       }
-    )
+    })
 
     return () => subscription.unsubscribe()
   }, [])
