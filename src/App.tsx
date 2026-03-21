@@ -65,3 +65,8 @@ export default function App() {
             <span className="nav-icon">⚙️</span>
             <span className="nav-label" style={{ color: '#e0914f' }}>Admin</span>
           </button>
+        )}
+      </nav>
+    </>
+  )
+}
