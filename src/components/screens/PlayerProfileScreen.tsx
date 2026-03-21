@@ -27,7 +27,7 @@ export function PlayerProfileScreen({ player, onBack, onChallenge }: Props) {
   const streak = player.wins > 0 ? `W${Math.min(player.wins, 5)}` : player.losses > 0 ? `L${Math.min(player.losses, 3)}` : '—'
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3', position: 'relative' }}>
       {/* Back bar */}
       <div style={{ background: '#201c1d', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px 12px', flexShrink: 0 }}>
         <button onClick={onBack} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>

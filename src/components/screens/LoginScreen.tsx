@@ -153,8 +153,8 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#0d0c0c', minHeight: '100%' }}>
-      <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #2a2826' }}>
+    <div className="screen-root" style={{ background: '#0d0c0c' }}>
+      <div style={{ flexShrink: 0, padding: '16px 20px 12px', borderBottom: '1px solid #2a2826' }}>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5, color: '#fff', marginBottom: 4 }}>
           Profile photo
         </div>
@@ -163,7 +163,14 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px 20px 24px', minHeight: 0 }}>
+      <div
+        className="scroll"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '16px 20px calc(24px + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {phase === 'live' && (
           <>
             <div
@@ -395,16 +402,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   }
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 0,
-        background: '#fff',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="screen-root" style={{ background: '#fff' }}>
       {/* Compact header — does not grow; leaves vertical space for the form */}
       <div
         style={{

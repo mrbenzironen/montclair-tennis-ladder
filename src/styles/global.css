@@ -54,10 +54,21 @@ body {
   position: relative;
 }
 
+/* Main column under status bar: must shrink so inner .scroll can scroll on mobile */
+.screen-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* ── Scrollable areas ── */
 .scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 .scroll::-webkit-scrollbar { display: none; }
@@ -346,7 +357,9 @@ textarea.form-input {
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   max-height: 90vh;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes slideUp {
@@ -445,6 +458,7 @@ textarea.form-input {
 /* ── Loading screen ── */
 .loading-screen {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;

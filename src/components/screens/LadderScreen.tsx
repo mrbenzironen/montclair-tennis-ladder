@@ -24,7 +24,7 @@ export function LadderScreen() {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3' }}>
       <div style={{ background: '#201c1d', padding: '14px 20px 16px', textAlign: 'center', flexShrink: 0 }}>
         <div style={{ fontSize: 44, marginBottom: 6 }}>🎾</div>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#fff' }}>
@@ -32,7 +32,7 @@ export function LadderScreen() {
         </div>
       </div>
 
-      <div className="scroll">
+      <div className="scroll" style={{ paddingBottom: 80 }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#aaa79f', fontSize: 13 }}>
             Loading players…

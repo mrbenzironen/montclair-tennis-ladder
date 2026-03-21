@@ -37,7 +37,7 @@ export function ChallengesScreen() {
   const allActive = [...incoming, ...sent, ...accepted]
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3' }}>
       {/* Header */}
       <div style={{ background: '#201c1d', padding: '14px 20px 16px', textAlign: 'center', flexShrink: 0 }}>
         <div style={{ fontSize: 36, marginBottom: 6 }}>⚡</div>

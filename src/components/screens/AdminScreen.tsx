@@ -65,7 +65,7 @@ export function AdminScreen() {
   const hiddenCount = players.filter(p => p.is_hidden).length
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3' }}>
       {/* Header */}
       <div style={{ background: '#201c1d', padding: '0', flexShrink: 0 }}>
         <div style={{ padding: '14px 20px 0', textAlign: 'center' }}>

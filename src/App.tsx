@@ -23,7 +23,7 @@ export default function App() {
     return (
       <>
         <div className="status-spacer" />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <SignupSelfieStep
             userId={session.user.id}
             onComplete={() => {
@@ -38,7 +38,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="loading-screen" style={{ flex: 1 }}>
+      <div className="loading-screen" style={{ flex: 1, minHeight: 0 }}>
         <div>
           <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>🎾</div>
           <div className="spinner" />
@@ -67,7 +67,7 @@ export default function App() {
   return (
     <>
       <div className="status-spacer" />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {renderScreen()}
       </div>
       <nav className="bottom-nav">

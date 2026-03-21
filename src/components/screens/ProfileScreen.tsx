@@ -26,7 +26,7 @@ export function ProfileScreen() {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3' }}>
       {/* Hero */}
       <div style={{ background: '#201c1d', padding: '20px 20px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 16 }}>
@@ -213,7 +213,7 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f6f5f3' }}>
+    <div className="screen-root" style={{ background: '#f6f5f3' }}>
       <div style={{ background: '#201c1d', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', flexShrink: 0, position: 'relative' }}>
         <button onClick={onBack} style={{ position: 'absolute', left: 12, color: 'rgba(255,255,255,0.5)', fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}>←</button>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 17, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#fff' }}>
