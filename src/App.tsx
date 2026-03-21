@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from './hooks/useAuth'
-import { LoginScreen, SignupSelfieStep, PENDING_SELFIE_KEY } from './components/screens/LoginScreen'
+import { LoginScreen, SignupSelfieStep, PENDING_SELFIE_KEY, requiresSignupSelfie } from './components/screens/LoginScreen'
 import { LadderScreen } from './components/screens/LadderScreen'
 import { ChallengesScreen } from './components/screens/ChallengesScreen'
 import { RulesScreen } from './components/screens/RulesScreen'
@@ -12,12 +12,13 @@ export default function App() {
   const { session, user, loading, refreshProfile } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
 
-  // Pending selfie must run as soon as we have a session — profile load is still in flight
-  // (user is null), so this check has to come before !user and before the global loading gate.
+  // Mandatory post-signup selfie: enforced via user_metadata.requires_selfie (survives refresh /
+  // email-confirm login). sessionStorage backs the handoff right after signup before metadata sync.
   const pendingSelfie =
-    typeof sessionStorage !== 'undefined' &&
     !!session?.user?.id &&
-    sessionStorage.getItem(PENDING_SELFIE_KEY) === session.user.id
+    (requiresSignupSelfie(session) ||
+      (typeof sessionStorage !== 'undefined' &&
+        sessionStorage.getItem(PENDING_SELFIE_KEY) === session.user.id))
 
   if (pendingSelfie) {
     return (

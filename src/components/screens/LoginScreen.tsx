@@ -1,10 +1,18 @@
 import { useState, type FormEvent, useRef, useEffect, useCallback } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 
 const LOGO_URL = 'https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png'
 
-/** Set after successful signup so App can show the selfie step (LoginScreen unmounts once auth updates). */
+/** Set after successful signup so App can show the selfie step before JWT metadata is read (LoginScreen unmounts once auth updates). */
 export const PENDING_SELFIE_KEY = 'mtl_pending_selfie'
+
+/** True for new accounts until they upload a profile photo (stored in auth user_metadata). */
+export function requiresSignupSelfie(session: Session | null): boolean {
+  if (!session?.user?.id) return false
+  const v = session.user.user_metadata?.requires_selfie
+  return v === true || v === 'true'
+}
 
 function digitsOnly(s: string) {
   return s.replace(/\D/g, '')
@@ -144,6 +152,11 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
       const { error: dbErr } = await supabase.from('users').update({ photo_url: publicUrl }).eq('id', userId)
       if (dbErr) throw new Error(dbErr.message)
 
+      const { error: metaErr } = await supabase.auth.updateUser({
+        data: { requires_selfie: false },
+      })
+      if (metaErr) throw new Error(metaErr.message)
+
       onComplete()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Upload failed')
@@ -159,7 +172,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
           Profile photo
         </div>
         <div style={{ fontSize: 13, color: '#8a8680', fontWeight: 300, lineHeight: 1.45 }}>
-          Center your face in the guide, then take a selfie. This helps other players recognize you on the ladder.
+          Required to finish signup. Center your face in the guide, then take a selfie so other players can recognize you on the ladder.
         </div>
       </div>
 
@@ -341,7 +354,12 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         const { data, error: signErr } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: `${firstName} ${lastName}`.trim() } },
+          options: {
+            data: {
+              full_name: `${firstName} ${lastName}`.trim(),
+              requires_selfie: true,
+            },
+          },
         })
 
         if (signErr) {
@@ -387,7 +405,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             /* private mode */
           }
         } else if (data.user && !sessionData.session) {
-          setError('Check your email to confirm your account. After confirming, sign in and add your photo from Profile.')
+          setError('Check your email to confirm your account. After confirming, sign in. You will be asked to take a profile photo before using the ladder.')
         }
 
         onLogin()
