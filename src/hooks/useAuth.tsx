@@ -20,21 +20,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loadProfile(userId: string, email: string) {
     try {
-      const { data: profile, error } = await supabase
+      const { data: profile } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (error) {
-        console.error('Profile load error:', error)
+      if (!profile) {
         setUser({ id: userId, email, profile: null })
+        setLoading(false)
         return
       }
 
-      // Load ladder separately if ladder_id exists
       let ladder = null
-      if (profile?.ladder_id) {
+      if (profile.ladder_id) {
         const { data: ladderData } = await supabase
           .from('ladders')
           .select('*')
@@ -51,6 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error('loadProfile error:', e)
       setUser({ id: userId, email, profile: null })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -64,9 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session?.user) {
-        loadProfile(session.user.id, session.user.email ?? '').finally(() =>
-          setLoading(false)
-        )
+        loadProfile(session.user.id, session.user.email ?? '')
       } else {
         setLoading(false)
       }
@@ -79,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id, session.user.email ?? '')
         } else {
           setUser(null)
+          setLoading(false)
         }
-        setLoading(false)
       }
     )
 
