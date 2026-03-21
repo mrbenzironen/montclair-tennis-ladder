@@ -14,11 +14,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="loading-screen" style={{ flex: 1 }}>
-        <div>
-          <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>🎾</div>
-          <div className="spinner" />
-        </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f5f3' }}>
+        <div className="spinner" />
       </div>
     )
   }
@@ -27,24 +24,7 @@ export default function App() {
     return <LoginScreen onLogin={() => {}} />
   }
 
-  if (!user.profile || !user.profile.ladder_id) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 20, background: '#f6f5f3' }}>
-        <div style={{ fontSize: 48 }}>🎾</div>
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, textTransform: 'uppercase', color: '#201c1d', textAlign: 'center' }}>
-          Almost there!
-        </div>
-        <div style={{ fontSize: 13, color: '#7a7672', fontWeight: 300, textAlign: 'center', lineHeight: 1.6, maxWidth: 260 }}>
-          Your account is ready but you haven't been assigned to a ladder yet. Contact Benzi to get added.
-        </div>
-        <a href="sms:+19735550100" style={{ marginTop: 8, padding: '14px 28px', background: '#201c1d', color: '#c4e012', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', borderRadius: 6, textDecoration: 'none' }}>
-          Text Benzi
-        </a>
-      </div>
-    )
-  }
-
-  const isAdmin = user.profile.is_admin
+  const isAdmin = user.profile?.is_admin ?? false
 
   function renderScreen() {
     switch (tab) {
@@ -85,8 +65,3 @@ export default function App() {
             <span className="nav-icon">⚙️</span>
             <span className="nav-label" style={{ color: '#e0914f' }}>Admin</span>
           </button>
-        )}
-      </nav>
-    </>
-  )
-}
