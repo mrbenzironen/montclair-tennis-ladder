@@ -12,24 +12,12 @@ export default function App() {
   const { session, user, loading, refreshProfile } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
 
-  if (loading) {
-    return (
-      <div className="loading-screen" style={{ flex: 1 }}>
-        <div>
-          <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>🎾</div>
-          <div className="spinner" />
-        </div>
-      </div>
-    )
-  }
-
-  if (!session || !user) {
-    return <LoginScreen onLogin={() => {}} />
-  }
-
+  // Pending selfie must run as soon as we have a session — profile load is still in flight
+  // (user is null), so this check has to come before !user and before the global loading gate.
   const pendingSelfie =
     typeof sessionStorage !== 'undefined' &&
-    session.user.id === sessionStorage.getItem(PENDING_SELFIE_KEY)
+    !!session?.user?.id &&
+    sessionStorage.getItem(PENDING_SELFIE_KEY) === session.user.id
 
   if (pendingSelfie) {
     return (
@@ -46,6 +34,21 @@ export default function App() {
         </div>
       </>
     )
+  }
+
+  if (loading) {
+    return (
+      <div className="loading-screen" style={{ flex: 1 }}>
+        <div>
+          <div style={{ fontSize: 48, textAlign: 'center', marginBottom: 16 }}>🎾</div>
+          <div className="spinner" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!session || !user) {
+    return <LoginScreen onLogin={() => {}} />
   }
 
   const isAdmin = user.profile?.is_admin ?? false
