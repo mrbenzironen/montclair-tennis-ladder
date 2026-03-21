@@ -10,31 +10,11 @@ interface LoginScreenProps {
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(true)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  async function handleGoogleLogin() {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
-    if (error) setError(error.message)
-    setLoading(false)
-  }
-
-  async function handleAppleLogin() {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: window.location.origin },
-    })
-    if (error) setError(error.message)
-    setLoading(false)
-  }
 
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault()
@@ -58,6 +38,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+
+      {/* Logo area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px 24px' }}>
         <img src={LOGO_URL} alt="Tennis Ladder" style={{ height: 110, width: 'auto', objectFit: 'contain', marginBottom: 16 }} />
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 24, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, color: '#201c1d', marginBottom: 6 }}>
@@ -68,38 +50,65 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         </div>
       </div>
 
+      {/* Auth form */}
       <div style={{ background: '#fff', padding: '24px 28px 36px', borderTop: '1.5px solid #e6e4e0' }}>
-        <button onClick={handleGoogleLogin} disabled={loading} style={{ width: '100%', padding: '13px', marginBottom: 10, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}>
-          🔍 Continue with Google
-        </button>
-        <button onClick={handleAppleLogin} disabled={loading} style={{ width: '100%', padding: '13px', marginBottom: 10, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}>
-          🍎 Continue with Apple
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 12px' }}>
-          <div style={{ flex: 1, height: 1, background: '#e6e4e0' }} />
-          <div style={{ fontSize: 11, color: '#aaa79f' }}>or {isSignUp ? 'sign up' : 'sign in'} with email</div>
-          <div style={{ flex: 1, height: 1, background: '#e6e4e0' }} />
+
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', marginBottom: 20, background: '#f6f5f3', borderRadius: 8, padding: 4 }}>
+          <button
+            onClick={() => { setIsSignUp(true); setError('') }}
+            style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: isSignUp ? '#201c1d' : 'transparent', color: isSignUp ? '#c4e012' : '#aaa79f', transition: 'all 0.2s' }}
+          >
+            Create Account
+          </button>
+          <button
+            onClick={() => { setIsSignUp(false); setError('') }}
+            style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: !isSignUp ? '#201c1d' : 'transparent', color: !isSignUp ? '#c4e012' : '#aaa79f', transition: 'all 0.2s' }}
+          >
+            Sign In
+          </button>
         </div>
+
         <form onSubmit={handleEmailAuth}>
           {isSignUp && (
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              <input className="form-input" placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} required style={{ flex: 1 }} />
-              <input className="form-input" placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} required style={{ flex: 1 }} />
+            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>First Name</label>
+                <input className="form-input" placeholder="Benzi" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Last Name</label>
+                <input className="form-input" placeholder="Ironen" value={lastName} onChange={e => setLastName(e.target.value)} required />
+              </div>
             </div>
           )}
-          <input className="form-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required style={{ marginBottom: 10 }} />
-          <input className="form-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required style={{ marginBottom: 12 }} />
-          {error && <div style={{ fontSize: 12, color: '#c0392b', marginBottom: 10, textAlign: 'center' }}>{error}</div>}
-          <button className="btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Loading…' : isSignUp ? 'Create Account →' : 'Sign In →'}
+
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Email</label>
+            <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Password</label>
+            <input className="form-input" type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} required />
+          </div>
+
+          {error && (
+            <div style={{ fontSize: 12, color: '#c0392b', marginBottom: 12, padding: '10px 14px', background: '#fde8e8', borderRadius: 6 }}>
+              {error}
+            </div>
+          )}
+
+          <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15 }}>
+            {loading ? 'Loading…' : isSignUp ? 'Create My Account →' : 'Sign In →'}
           </button>
         </form>
-        <div style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#aaa79f' }}>
-          {isSignUp ? 'Already a member? ' : "Don't have an account? "}
-          <span style={{ color: '#201c1d', fontWeight: 500, cursor: 'pointer' }} onClick={() => { setIsSignUp(!isSignUp); setError('') }}>
-            {isSignUp ? 'Sign in' : 'Create account'}
-          </span>
-        </div>
+
+        {isSignUp && (
+          <div style={{ marginTop: 16, padding: '12px 14px', background: '#f0f8d0', borderRadius: 8, fontSize: 12, color: '#4a6000', lineHeight: 1.5, textAlign: 'center' }}>
+            🎾 After signing up, Benzi will add you to the ladder and set your starting rank.
+          </div>
+        )}
       </div>
     </div>
   )
