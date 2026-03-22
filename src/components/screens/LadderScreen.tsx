@@ -14,7 +14,7 @@ interface LadderScreenProps {
 
 export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
   const { players, loading, refetch, myActiveChallenge } = useLadder()
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [challengeTarget, setChallengeTarget] = useState<User | null>(null)
   const [inviteFriendOpen, setInviteFriendOpen] = useState(false)
@@ -43,24 +43,49 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
       <div
         style={{
           background: '#201c1d',
-          padding: '16px 20px',
+          padding: '12px 8px 16px',
           display: 'flex',
-          justifyContent: 'center',
           alignItems: 'center',
           flexShrink: 0,
         }}
       >
-        <img
-          src={MONTCLAIR_LADDER_LOGO_URL}
-          alt="Montclair Tennis Ladder"
-          style={{
-            height: 56,
-            width: 'auto',
-            maxWidth: 'min(220px, 72vw)',
-            objectFit: 'contain',
-            display: 'block',
-          }}
-        />
+        <div style={{ width: 76, flexShrink: 0 }} aria-hidden />
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+          <img
+            src={MONTCLAIR_LADDER_LOGO_URL}
+            alt="Montclair Tennis Ladder"
+            style={{
+              height: 56,
+              width: 'auto',
+              maxWidth: 'min(220px, 56vw)',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+        </div>
+        <div style={{ width: 76, flexShrink: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', paddingTop: 2 }}>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '4px 2px',
+              margin: 0,
+              cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 0.5,
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.55)',
+              textDecoration: 'underline',
+              textUnderlineOffset: 2,
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
 
       <div className="scroll" style={{ paddingBottom: 80 }}>
