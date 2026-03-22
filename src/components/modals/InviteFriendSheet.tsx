@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
 import { sendFriendInvite } from '../../lib/invites'
+import { useAuth } from '../../hooks/useAuth'
 
 interface Props {
   onClose: () => void
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function InviteFriendSheet({ onClose, onSent }: Props) {
+  const { user } = useAuth()
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,6 +17,10 @@ export function InviteFriendSheet({ onClose, onSent }: Props) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
+    if (!user?.id) {
+      setError('You need to be signed in to send an invite.')
+      return
+    }
     const normalized = normalizeUsPhoneE164(phone)
     if (!normalized) {
       setError('Enter a valid US cell number (10 digits).')
@@ -22,7 +28,7 @@ export function InviteFriendSheet({ onClose, onSent }: Props) {
     }
     setLoading(true)
     try {
-      await sendFriendInvite(phone.trim())
+      await sendFriendInvite(phone.trim(), user.id)
       onSent()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
