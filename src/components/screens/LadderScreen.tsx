@@ -80,8 +80,16 @@ export function LadderScreen() {
                   <div style={{ fontSize: 14, fontWeight: 500, color: '#201c1d', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {player.full_name}
                   </div>
-                  <div style={{ fontSize: 11, color: '#aaa79f', marginTop: 1 }}>
-                    {player.wins}W · {player.losses}L
+                  <div style={{ fontSize: 11, marginTop: 2, color: '#7a7672', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 3 }}>
+                      <abbr title="Wins" style={{ textDecoration: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 10, color: '#4a6000', letterSpacing: 0.5 }}>W</abbr>
+                      <span style={{ fontWeight: 600, color: '#201c1d' }}>{player.wins}</span>
+                    </span>
+                    <span style={{ color: '#d4d2ce', fontWeight: 300 }}>·</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 3 }}>
+                      <abbr title="Losses" style={{ textDecoration: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 10, color: '#a53a3a', letterSpacing: 0.5 }}>L</abbr>
+                      <span style={{ fontWeight: 600, color: '#201c1d' }}>{player.losses}</span>
+                    </span>
                   </div>
                 </div>
 

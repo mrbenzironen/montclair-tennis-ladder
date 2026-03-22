@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useChallenges } from '../../hooks/useChallenges'
 import { useAuth } from '../../hooks/useAuth'
-import { Challenge, Match } from '../../types'
+import { Challenge, User } from '../../types'
 import { ReportScoreSheet } from '../modals/ReportScoreSheet'
 import { respondToChallenge, withdrawChallenge } from '../../lib/challenges'
 
@@ -34,7 +34,7 @@ export function ChallengesScreen() {
     refetch()
   }
 
-  const allActive = [...incoming, ...sent, ...accepted]
+  const hasActive = incoming.length > 0 || sent.length > 0 || accepted.length > 0
 
   return (
     <div className="screen-root" style={{ background: '#f6f5f3' }}>
@@ -44,6 +44,9 @@ export function ChallengesScreen() {
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: '#fff' }}>
           Challenges
         </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 300, marginTop: 4 }}>
+          Your challenges and match results
+        </div>
       </div>
 
       <div className="scroll" style={{ paddingBottom: 80 }}>
@@ -51,11 +54,14 @@ export function ChallengesScreen() {
           <div className="loading-screen"><div className="spinner" /></div>
         ) : (
           <>
-            {/* Active challenges */}
-            {allActive.length > 0 && (
-              <>
-                <div className="section-label">Active</div>
-                {incoming.map(c => {
+            {hasActive && <div className="section-label">Active challenges</div>}
+
+            {incoming.length > 0 && (
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#e0914f', padding: '4px 16px 8px' }}>
+                Challenged you — respond
+              </div>
+            )}
+            {incoming.map(c => {
                   const opp = c.challenger
                   const tl = timeLeft(c.deadline_respond)
                   const isWarn = new Date(c.deadline_respond).getTime() - Date.now() < 7200000
@@ -85,7 +91,12 @@ export function ChallengesScreen() {
                   )
                 })}
 
-                {sent.map(c => {
+            {sent.length > 0 && (
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#4a6000', padding: incoming.length > 0 ? '12px 16px 8px' : '4px 16px 8px' }}>
+                You challenged — waiting on them
+              </div>
+            )}
+            {sent.map(c => {
                   const opp = c.challenged
                   const tl = timeLeft(c.deadline_respond)
                   return (
@@ -111,7 +122,12 @@ export function ChallengesScreen() {
                   )
                 })}
 
-                {accepted.map(c => {
+            {accepted.length > 0 && (
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#201c1d', padding: '12px 16px 8px' }}>
+                Accepted — schedule your match
+              </div>
+            )}
+            {accepted.map(c => {
                   const isChallenger = c.challenger_id === user?.id
                   const opp = isChallenger ? c.challenged : c.challenger
                   const tl = c.deadline_play ? timeLeft(c.deadline_play) : '14 days'
@@ -121,8 +137,9 @@ export function ChallengesScreen() {
                         <img src={opp?.photo_url || ''} alt={opp?.full_name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
                           onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(opp?.full_name ?? 'Player')}&background=f6f5f3&color=201c1d&size=88` }} />
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 10, color: '#aaa79f', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>Match Accepted</div>
+                          <div style={{ fontSize: 10, color: '#aaa79f', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>Match accepted</div>
                           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 17, fontWeight: 800, textTransform: 'uppercase', color: '#201c1d', lineHeight: 1, marginBottom: 2 }}>{opp?.full_name}</div>
+                          <div style={{ fontSize: 11, color: '#7a7672', marginBottom: 2 }}>{isChallenger ? 'You challenged this player' : 'This player challenged you'}</div>
                           <div style={{ fontSize: 11, color: '#aaa79f' }}>Rank #{opp?.rank}</div>
                         </div>
                         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '4px 9px', borderRadius: 3, background: '#e8f0ff', color: '#1a2a6a' }}>Accepted</div>
@@ -140,15 +157,15 @@ export function ChallengesScreen() {
                       )}
                       <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
                         <button onClick={() => setReportChallenge(c)} style={{ flex: 1, padding: 11, background: '#c4e012', color: '#201c1d', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Report Score</button>
-                        <button onClick={() => handleWithdraw(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
+                        {isChallenger && (
+                          <button onClick={() => handleWithdraw(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
+                        )}
                       </div>
                     </div>
                   )
                 })}
-              </>
-            )}
 
-            {allActive.length === 0 && (
+            {!hasActive && (
               <div style={{ padding: '40px 20px', textAlign: 'center', color: '#aaa79f', fontSize: 13 }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
                 <div>No active challenges.</div>
@@ -156,17 +173,20 @@ export function ChallengesScreen() {
               </div>
             )}
 
-            {/* Match history */}
             {matches.length > 0 && (
               <>
-                <div className="section-label">Match History</div>
+                <div className="section-label" style={{ marginTop: hasActive ? 8 : 0 }}>Your match history</div>
+                <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, padding: '0 16px 10px', lineHeight: 1.45 }}>
+                  Games you played and scores (most recent first). Final once the result is confirmed.
+                </div>
                 <div className="card">
                   {matches.map((m, i) => {
                     const isWin = m.winner_id === user?.id
                     const opp = isWin ? m.loser : m.winner
                     const scoreStr = m.winner_score != null
                       ? isWin ? `${m.winner_score}–${m.loser_score}` : `${m.loser_score}–${m.winner_score}`
-                      : '—'
+                      : 'Score pending'
+                    const confirmed = m.confirmed_at != null
                     return (
                       <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: i < matches.length - 1 ? '1px solid #f0ede8' : 'none' }}>
                         <div style={{ width: 28, height: 28, borderRadius: 4, background: isWin ? '#e8f7a8' : '#f8d7da', color: isWin ? '#4a6000' : '#721c24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
@@ -174,14 +194,17 @@ export function ChallengesScreen() {
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13, fontWeight: 500, color: '#201c1d', display: 'flex', alignItems: 'center', gap: 7 }}>
-                            {(opp as any)?.full_name ?? 'Unknown'}
+                            vs {(opp as User | undefined)?.full_name ?? 'Unknown'}
                           </div>
                           <div style={{ fontSize: 11, color: '#aaa79f', marginTop: 1 }}>
                             {new Date(m.created_at).toLocaleDateString()} · {scoreStr}
+                            {!confirmed && (
+                              <span style={{ color: '#e0914f', marginLeft: 6 }}>· Awaiting confirmation</span>
+                            )}
                           </div>
                         </div>
                         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: isWin ? '#4a6000' : '#aaa79f' }}>
-                          {isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : '—'}
+                          {confirmed && isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : confirmed ? '—' : '…'}
                         </div>
                       </div>
                     )
