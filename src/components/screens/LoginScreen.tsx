@@ -1,9 +1,8 @@
 import { useState, type FormEvent, useRef, useEffect, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
+import { MONTCLAIR_LADDER_LOGO_URL } from '../../lib/branding'
 import { digitsOnly } from '../../lib/phone'
-
-const LOGO_URL = 'https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png'
 
 /** Set after successful signup so App can show the selfie step before JWT metadata is read (LoginScreen unmounts once auth updates). */
 export const PENDING_SELFIE_KEY = 'mtl_pending_selfie'
@@ -430,7 +429,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         }}
       >
         <img
-          src={LOGO_URL}
+          src={MONTCLAIR_LADDER_LOGO_URL}
           alt="Tennis Ladder"
           style={{
             height: 64,

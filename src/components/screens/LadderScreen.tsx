@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { MONTCLAIR_LADDER_LOGO_URL } from '../../lib/branding'
 import { useLadder } from '../../hooks/useLadder'
 import { useAuth } from '../../hooks/useAuth'
 import { User } from '../../types'
@@ -25,8 +26,6 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
     setInviteFriendOpen(false)
   }, [ladderPopToRoot])
 
-  const ladderName = user?.profile?.ladder?.name ?? 'Advanced'
-
   if (selectedPlayer) {
     const row = selectedPlayer as User & { isEligible?: boolean }
     return (
@@ -41,14 +40,27 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
 
   return (
     <div className="screen-root" style={{ background: '#f6f5f3' }}>
-      <div style={{ background: '#201c1d', padding: '14px 20px 16px', textAlign: 'center', flexShrink: 0 }}>
-        <div style={{ fontSize: 44, marginBottom: 6 }}>🎾</div>
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#fff' }}>
-          {ladderName} Ladder
-        </div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 300, marginTop: 6, lineHeight: 1.35 }}>
-          4.0 NTRP or better
-        </div>
+      <div
+        style={{
+          background: '#201c1d',
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <img
+          src={MONTCLAIR_LADDER_LOGO_URL}
+          alt="Montclair Tennis Ladder"
+          style={{
+            height: 56,
+            width: 'auto',
+            maxWidth: 'min(220px, 72vw)',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
       </div>
 
       <div className="scroll" style={{ paddingBottom: 80 }}>

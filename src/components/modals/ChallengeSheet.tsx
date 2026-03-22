@@ -18,6 +18,8 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  /** After challenge is saved: show explainer before opening sms: (browser “open another app” prompt). */
+  const [smsDraft, setSmsDraft] = useState<{ body: string; phone: string } | null>(null)
   /** Fresh phone from DB so SMS To field isn’t empty due to stale list rows. */
   const [theirPhone, setTheirPhone] = useState(target.phone ?? '')
 
@@ -48,8 +50,7 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
       const myFirst = user.profile.full_name.split(' ')[0]
       const link = getChallengesDeepLinkUrl()
       const msg = `Hi ${theirFirst}, it's ${myFirst}. I've challenged you on the Montclair Tennis Ladder — open this link to accept or decline in the app: ${link}`
-      openSmsComposer(msg, theirPhone)
-      onSent()
+      setSmsDraft({ body: msg, phone: theirPhone })
     } catch (e: any) {
       setError(e.message)
     }
@@ -102,7 +103,11 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
           {[
             { icon: '📅', title: '14 days to play', sub: 'Arrange within 14 days of acceptance.' },
             { icon: '🎾', title: '9-game pro set', sub: 'You bring balls. Venue is their choice.' },
-            { icon: '📱', title: 'Text them', sub: 'Your SMS app opens to send them a message with a link to the Challenges tab so they can accept or decline.' },
+            {
+              icon: '📱',
+              title: 'Text them',
+              sub: 'After you send the challenge, you can open Messages with a draft text to notify them. Your browser may ask to allow opening Messages — that’s expected.',
+            },
           ].map(r => (
             <div key={r.title} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid #e6e4e0' }}>
               <div style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{r.icon}</div>
