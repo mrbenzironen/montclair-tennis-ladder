@@ -165,9 +165,14 @@ export async function reportScore(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) throw new Error(getErrorMessage(error, 'Could not save the match result.'))
 
-  await supabase.from('challenges').update({ match_id: match.id }).eq('id', challengeId)
+  const { error: chErr } = await supabase
+    .from('challenges')
+    .update({ match_id: match.id })
+    .eq('id', challengeId)
+
+  if (chErr) throw new Error(getErrorMessage(chErr, 'Could not link the match to this challenge.'))
 
   await finalizeMatch(match.id)
 
@@ -185,20 +190,16 @@ async function finalizeMatch(matchId: string) {
 
   await updateRankings(match.winner_id, match.loser_id, match.challenge_id, matchId)
 
-  await supabase
+  const { error: completeErr } = await supabase
     .from('challenges')
     .update({ status: 'completed' })
     .eq('id', match.challenge_id)
 
-  const { error: statsErr } = await supabase.rpc('record_match_for_users', {
-    winner_id: match.winner_id,
-    loser_id: match.loser_id,
-  })
-  if (statsErr) {
-    throw new Error(
-      getErrorMessage(statsErr, 'Could not update wins and losses. If this persists, contact support.')
-    )
+  if (completeErr) {
+    throw new Error(getErrorMessage(completeErr, 'Could not mark the challenge as completed.'))
   }
+
+  // Wins/losses are updated by DB trigger trg_matches_record_stats (see migration 007).
 
   await supabase.functions.invoke('send-sms', {
     body: { type: 'match_confirmed', matchId },

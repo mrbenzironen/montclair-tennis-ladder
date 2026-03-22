@@ -93,9 +93,12 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
   async function handleSubmit() {
     if (iWon !== true || !user?.profile) return
     setLoading(true)
+    setSubmitError('')
     try {
       const winnerId = user.id
-      const loserId = opponent?.id ?? ''
+      // Never rely on nested challenger/challenged joins — they can be missing; IDs on the row are always present.
+      const loserId =
+        user.id === challenge.challenger_id ? challenge.challenged_id : challenge.challenger_id
       const wScore = parseInt(myScore) || null
       const lScore = parseInt(oppScore) || null
       await reportScore(challenge.id, winnerId, loserId, wScore, lScore, user.id)
