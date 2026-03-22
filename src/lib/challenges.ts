@@ -129,6 +129,10 @@ export async function withdrawChallenge(challengeId: string, challengerId: strin
   if (error) throw error
 }
 
+/**
+ * Winner reports the score; result is final immediately (no loser confirmation).
+ * `reportedById` must equal `winnerId`.
+ */
 export async function reportScore(
   challengeId: string,
   winnerId: string,
@@ -137,7 +141,11 @@ export async function reportScore(
   loserScore: number | null,
   reportedById: string
 ) {
-  // Create match record
+  if (reportedById !== winnerId) {
+    throw new Error('Only the match winner can report the score.')
+  }
+
+  const now = new Date().toISOString()
   const { data: match, error } = await supabase
     .from('matches')
     .insert({
@@ -147,73 +155,63 @@ export async function reportScore(
       winner_score: winnerScore,
       loser_score: loserScore,
       reported_by: reportedById,
-      reported_at: new Date().toISOString(),
+      reported_at: now,
+      confirmed_at: now,
+      auto_confirmed: false,
     })
     .select()
     .single()
 
   if (error) throw error
 
-  // Update challenge to link match
-  await supabase
-    .from('challenges')
-    .update({ match_id: match.id })
-    .eq('id', challengeId)
+  await supabase.from('challenges').update({ match_id: match.id }).eq('id', challengeId)
 
-  // Send SMS to loser to confirm
-  await supabase.functions.invoke('send-sms', {
-    body: { type: 'confirm_score', matchId: match.id },
-  })
+  await finalizeMatch(match.id)
 
   return match
 }
 
-export async function confirmScore(matchId: string, loserId: string) {
+async function finalizeMatch(matchId: string) {
   const { data: match } = await supabase
     .from('matches')
-    .select('*, challenge:challenges(*)')
+    .select('winner_id, loser_id, challenge_id')
     .eq('id', matchId)
     .single()
 
   if (!match) throw new Error('Match not found')
 
-  // Confirm the match
-  await supabase
-    .from('matches')
-    .update({ confirmed_at: new Date().toISOString() })
-    .eq('id', matchId)
+  await updateRankings(match.winner_id, match.loser_id, match.challenge_id, matchId)
 
-  // Update rankings
-  await updateRankings(match.winner_id, match.loser_id, match.challenge_id)
-
-  // Update challenge status
   await supabase
     .from('challenges')
     .update({ status: 'completed' })
     .eq('id', match.challenge_id)
 
-  // Increment matches_played and update last_active
   await Promise.all([
     supabase.rpc('increment_matches_played', { user_id: match.winner_id }),
     supabase.rpc('increment_matches_played', { user_id: match.loser_id }),
   ])
 
-  // Send confirmation SMS to both players
   await supabase.functions.invoke('send-sms', {
     body: { type: 'match_confirmed', matchId },
   })
 }
 
-async function updateRankings(winnerId: string, loserId: string, challengeId: string) {
+async function updateRankings(
+  winnerId: string,
+  loserId: string,
+  challengeId: string,
+  matchId: string
+) {
   const { data: challenge } = await supabase
     .from('challenges')
-    .select('challenger_id, challenged_id')
+    .select('challenger_id, challenged_id, ladder_id')
     .eq('id', challengeId)
     .single()
 
-  if (!challenge) return
+  if (!challenge?.ladder_id) return
 
-  // Only update if challenger won (challenger moves up, challenged drops 1)
+  // Only update ladder positions if challenger won (challenger moves up, challenged drops one)
   if (winnerId !== challenge.challenger_id) return
 
   const { data: winner } = await supabase
@@ -233,22 +231,20 @@ async function updateRankings(winnerId: string, loserId: string, challengeId: st
   const challengerOldRank = winner.rank
   const challengedRank = loser.rank
 
-  // Shift everyone between down by 1
   await supabase.rpc('shift_ranks_down', {
     from_rank: challengedRank,
     to_rank: challengerOldRank - 1,
-    ladder_id_param: challenge.challenger_id,
+    ladder_id_param: challenge.ladder_id,
   })
 
-  // Winner takes challenged player's rank
   await supabase
     .from('users')
     .update({ rank: challengedRank, last_active_at: new Date().toISOString() })
     .eq('id', winnerId)
 
-  // Record rank change on match
+  const delta = challengerOldRank - challengedRank
   await supabase
     .from('matches')
-    .update({ rank_change: challengerOldRank - challengedRank })
-    .eq('id', challengeId)
+    .update({ rank_change: delta > 0 ? delta : 0 })
+    .eq('id', matchId)
 }

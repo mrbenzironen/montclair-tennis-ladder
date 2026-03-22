@@ -10,7 +10,7 @@ export function AdminScreen() {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [msgBody, setMsgBody] = useState('The season officially starts April 1st. All players are now visible on the ladder. Good luck! 🎾')
   const [msgChannel, setMsgChannel] = useState<'sms' | 'inapp' | 'both'>('sms')
-  const [msgAudience, setMsgAudience] = useState<'all' | 'intermediate' | 'advanced'>('all')
+  const [msgAudience, setMsgAudience] = useState<'all' | 'advanced'>('all')
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [confirmAction, setConfirmAction] = useState<'suspend' | 'remove' | null>(null)
@@ -109,9 +109,9 @@ export function AdminScreen() {
           {/* Audience */}
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 8 }}>Send to</div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-            {(['all', 'intermediate', 'advanced'] as const).map(aud => (
+            {(['all', 'advanced'] as const).map(aud => (
               <div key={aud} onClick={() => setMsgAudience(aud)} style={{ flex: 1, padding: 9, borderRadius: 6, border: `1.5px solid ${msgAudience === aud ? '#c4e012' : '#e6e4e0'}`, background: msgAudience === aud ? '#f0f8d0' : '#fff', cursor: 'pointer', textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: msgAudience === aud ? '#4a6000' : '#7a7672' }}>
-                {aud === 'all' ? 'All Players' : aud === 'intermediate' ? 'Intermediate' : 'Advanced'}
+                {aud === 'all' ? 'All Players' : 'Advanced only'}
               </div>
             ))}
           </div>
@@ -135,7 +135,7 @@ export function AdminScreen() {
           </div>
 
           <button className="btn-primary" onClick={sendBroadcast} disabled={sending || !msgBody} style={sent ? { background: '#4a6000', color: '#fff' } : {}}>
-            {sent ? '✓ Sent!' : sending ? 'Sending…' : `Send to ${msgAudience === 'all' ? 'All' : msgAudience === 'intermediate' ? 'Intermediate' : 'Advanced'} Players →`}
+            {sent ? '✓ Sent!' : sending ? 'Sending…' : `Send to ${msgAudience === 'all' ? 'All' : 'Advanced'} Players →`}
           </button>
         </div>
 

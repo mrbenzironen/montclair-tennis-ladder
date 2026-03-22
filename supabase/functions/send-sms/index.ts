@@ -39,8 +39,7 @@ serve(async (req) => {
     if (type === 'broadcast') {
       let query = supabase.from('users').select('phone, ladder:ladders(name)').eq('is_hidden', false)
       if (audience !== 'all') {
-        const ladderName = audience === 'intermediate' ? 'Intermediate' : 'Advanced'
-        const { data: ladder } = await supabase.from('ladders').select('id').eq('name', ladderName).single()
+        const { data: ladder } = await supabase.from('ladders').select('id').eq('name', 'Advanced').single()
         if (ladder) query = query.eq('ladder_id', ladder.id)
       }
       const { data: users } = await query
@@ -92,21 +91,6 @@ serve(async (req) => {
     }
 
     // ── Score notifications ────────────────────────────────────
-    if (type === 'confirm_score') {
-      const { data: m } = await supabase
-        .from('matches')
-        .select('*, winner:users!winner_id(full_name), loser:users!loser_id(phone, full_name)')
-        .eq('id', matchId)
-        .single()
-      if (!m) throw new Error('Match not found')
-      const loserPhone = (m.loser as any)?.phone
-      const winnerName = (m.winner as any)?.full_name
-      const score = m.winner_score != null ? ` ${m.winner_score}–${m.loser_score}` : ''
-      if (loserPhone) {
-        await sendSMS(loserPhone, `🎾 ${winnerName} reported the score${score}. Please confirm within 2 hours or it auto-confirms: https://montclair.tennis`)
-      }
-    }
-
     if (type === 'match_confirmed') {
       const { data: m } = await supabase
         .from('matches')

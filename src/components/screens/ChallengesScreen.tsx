@@ -177,7 +177,7 @@ export function ChallengesScreen() {
               <>
                 <div className="section-label" style={{ marginTop: hasActive ? 8 : 0 }}>Your match history</div>
                 <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, padding: '0 16px 10px', lineHeight: 1.45 }}>
-                  Games you played and scores (most recent first). Final once the result is confirmed.
+                  Games you played and scores (most recent first).
                 </div>
                 <div className="card">
                   {matches.map((m, i) => {
@@ -186,7 +186,6 @@ export function ChallengesScreen() {
                     const scoreStr = m.winner_score != null
                       ? isWin ? `${m.winner_score}–${m.loser_score}` : `${m.loser_score}–${m.winner_score}`
                       : 'Score pending'
-                    const confirmed = m.confirmed_at != null
                     return (
                       <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: i < matches.length - 1 ? '1px solid #f0ede8' : 'none' }}>
                         <div style={{ width: 28, height: 28, borderRadius: 4, background: isWin ? '#e8f7a8' : '#f8d7da', color: isWin ? '#4a6000' : '#721c24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
@@ -198,13 +197,10 @@ export function ChallengesScreen() {
                           </div>
                           <div style={{ fontSize: 11, color: '#aaa79f', marginTop: 1 }}>
                             {new Date(m.created_at).toLocaleDateString()} · {scoreStr}
-                            {!confirmed && (
-                              <span style={{ color: '#e0914f', marginLeft: 6 }}>· Awaiting confirmation</span>
-                            )}
                           </div>
                         </div>
                         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: isWin ? '#4a6000' : '#aaa79f' }}>
-                          {confirmed && isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : confirmed ? '—' : '…'}
+                          {isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : '—'}
                         </div>
                       </div>
                     )

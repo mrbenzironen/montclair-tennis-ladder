@@ -1,4 +1,4 @@
-export type LadderType = 'intermediate' | 'advanced'
+export type LadderType = 'advanced'
 
 export interface Ladder {
   id: string
@@ -88,7 +88,7 @@ export interface Invite {
 export interface Broadcast {
   id: string
   sender_id: string
-  audience: 'all' | 'intermediate' | 'advanced'
+  audience: 'all' | 'advanced'
   channel: 'sms' | 'inapp' | 'both'
   body: string
   recipient_count: number

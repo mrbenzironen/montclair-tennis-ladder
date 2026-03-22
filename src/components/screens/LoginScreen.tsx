@@ -332,7 +332,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
-  const [ladder, setLadder] = useState<'Intermediate' | 'Advanced'>('Intermediate')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -370,7 +369,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           const { data: ladderData } = await supabase
             .from('ladders')
             .select('id')
-            .eq('name', ladder)
+            .eq('name', 'Advanced')
             .single()
 
           if (ladderData) {
@@ -502,22 +501,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 </div>
               </div>
 
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 8 }}>Which ladder?</label>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  {(['Intermediate', 'Advanced'] as const).map(l => (
-                    <div
-                      key={l}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setLadder(l)}
-                      onKeyDown={ev => { if (ev.key === 'Enter' || ev.key === ' ') setLadder(l) }}
-                      style={{ flex: 1, padding: '12px 8px', borderRadius: 8, border: `2px solid ${ladder === l ? '#201c1d' : '#e6e4e0'}`, background: ladder === l ? '#201c1d' : '#fff', cursor: 'pointer', textAlign: 'center' }}
-                    >
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: ladder === l ? '#c4e012' : '#201c1d', marginBottom: 2 }}>{l}</div>
-                      <div style={{ fontSize: 10, color: ladder === l ? 'rgba(255,255,255,0.5)' : '#aaa79f' }}>{l === 'Intermediate' ? '3.5–4.5 NTRP' : '4.5+ NTRP'}</div>
-                    </div>
-                  ))}
+              <div style={{ marginBottom: 12, padding: '12px 14px', background: '#f6f5f3', borderRadius: 8, borderLeft: '3px solid #c4e012' }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#201c1d', marginBottom: 4 }}>Montclair ladder</div>
+                <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45 }}>
+                  One ladder for <strong style={{ color: '#201c1d' }}>4.0 NTRP or better</strong> (advanced players).
                 </div>
               </div>
 

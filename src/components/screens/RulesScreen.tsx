@@ -16,20 +16,20 @@ export function RulesScreen() {
       rules: [
         { text: 'Default: 9-game pro set, win by 2', note: 'Tiebreaker at 8-8. Challenger brings balls. Venue is the challenged player\'s choice.', type: 'key' },
         { text: 'Alternate format by mutual agreement only', note: 'Two 6-game sets + 10-point super tiebreaker. Must be agreed before play begins.', type: 'normal' },
-        { text: 'Winner reports score within 4 hours', note: 'Auto-confirmed after 2 hours if the loser doesn\'t respond.', type: 'normal' },
+        { text: 'Winner reports the score in the app', note: 'The result posts immediately — no approval step.', type: 'normal' },
       ],
     },
     {
       icon: '🏆', bg: '#e8f0ff', title: 'Ranking',
       rules: [
-        { text: 'Win: take the challenged player\'s exact spot', note: 'Challenged player drops one rung. Rankings update instantly once confirmed.', type: 'key' },
+        { text: 'Win: take the challenged player\'s exact spot', note: 'Challenged player drops one rung. Rankings update as soon as the winner posts the score.', type: 'key' },
         { text: 'Loss: no position change', note: 'If the challenged player wins, rankings stay the same.', type: 'normal' },
       ],
     },
     {
       icon: '⚡', bg: '#fef9e0', title: 'Wildcards',
       rules: [
-        { text: 'Earned after every 5 matches played', note: 'Forfeits don\'t count. Both Intermediate and Advanced ladders.', type: 'key' },
+        { text: 'Earned after every 5 matches played', note: 'Forfeits don\'t count.', type: 'key' },
         { text: 'Wildcard range: up to 20 spots above', note: 'Double the standard 10-spot challenge range.', type: 'normal' },
         { text: 'No forfeit wins on wildcard challenges', note: 'If the match isn\'t played the challenge is cancelled. No ranking change.', type: 'warn' },
       ],
@@ -53,7 +53,7 @@ export function RulesScreen() {
     {
       icon: '📍', bg: '#f0f8d0', title: 'New Player Placement',
       rules: [
-        { text: 'All new players start at the bottom', note: 'Applies to both ladders and mid-season joiners. Earn your way up.', type: 'key' },
+        { text: 'All new players start at the bottom', note: 'Applies to mid-season joiners too. Earn your way up.', type: 'key' },
         { text: 'Admin may adjust any starting position', note: 'Based on known playing level or prior competition history.', type: 'normal' },
       ],
     },

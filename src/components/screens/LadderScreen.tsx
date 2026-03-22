@@ -46,9 +46,40 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: '#fff' }}>
           {ladderName} Ladder
         </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 300, marginTop: 6, lineHeight: 1.35 }}>
+          4.0 NTRP or better
+        </div>
       </div>
 
       <div className="scroll" style={{ paddingBottom: 80 }}>
+        <div style={{ padding: '16px 20px 12px', background: '#fafaf8', borderBottom: '1px solid #e6e4e0' }}>
+          <button
+            type="button"
+            onClick={() => setInviteFriendOpen(true)}
+            style={{
+              width: '100%',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              padding: '14px 20px',
+              border: '1.5px solid #201c1d',
+              background: '#fff',
+              color: '#201c1d',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}
+          >
+            Invite a friend
+          </button>
+          {inviteSentToast && (
+            <div style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#4a6000', fontWeight: 500 }}>
+              Invite sent.
+            </div>
+          )}
+        </div>
+
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#aaa79f', fontSize: 13 }}>
             Loading players…
@@ -121,34 +152,6 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
             )
           })
         )}
-
-        <div style={{ padding: '20px 20px 16px', borderTop: '1px solid #e6e4e0', marginTop: 4, background: '#fafaf8' }}>
-          <button
-            type="button"
-            onClick={() => setInviteFriendOpen(true)}
-            style={{
-              width: '100%',
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              padding: '14px 20px',
-              border: '1.5px solid #201c1d',
-              background: '#fff',
-              color: '#201c1d',
-              borderRadius: 6,
-              cursor: 'pointer',
-            }}
-          >
-            Invite a friend
-          </button>
-          {inviteSentToast && (
-            <div style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#4a6000', fontWeight: 500 }}>
-              Invite sent.
-            </div>
-          )}
-        </div>
         <div style={{ height: 12 }} />
       </div>
 

@@ -133,7 +133,6 @@ export function PlayerProfileScreen({ player, canChallenge = true, onBack, onCha
                     ? `${m.winner_score}–${m.loser_score}`
                     : `${m.loser_score}–${m.winner_score}`
                   : 'Score pending'
-                const confirmed = m.confirmed_at != null
                 return (
                   <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderBottom: i < matches.length - 1 ? '1px solid #f0ede8' : 'none' }}>
                     <div style={{ width: 28, height: 28, borderRadius: 4, background: isWin ? '#e8f7a8' : '#f8d7da', color: isWin ? '#4a6000' : '#721c24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
@@ -147,13 +146,10 @@ export function PlayerProfileScreen({ player, canChallenge = true, onBack, onCha
                         {new Date(m.created_at).toLocaleDateString()}
                         {' · '}
                         <span style={{ fontWeight: 500, color: '#201c1d' }}>Score {scoreStr}</span>
-                        {!confirmed && (
-                          <span style={{ color: '#e0914f', marginLeft: 6 }}>· Awaiting confirmation</span>
-                        )}
                       </div>
                     </div>
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, color: isWin ? '#4a6000' : '#aaa79f', flexShrink: 0 }}>
-                      {confirmed && isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : confirmed ? '—' : '…'}
+                      {isWin && m.rank_change > 0 ? `+${m.rank_change} ↑` : '—'}
                     </div>
                   </div>
                 )

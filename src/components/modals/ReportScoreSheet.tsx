@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
-import { Challenge, User } from '../../types'
+import { useState, useRef } from 'react'
+import type { Challenge, User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
-import { reportScore, confirmScore } from '../../lib/challenges'
+import { reportScore } from '../../lib/challenges'
 
 interface Props {
   challenge: Challenge
@@ -15,7 +15,7 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
   const [myScore, setMyScore] = useState('')
   const [oppScore, setOppScore] = useState('')
   const [loading, setLoading] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [success, setSuccess] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const isChallenger = challenge.challenger_id === user?.id
@@ -89,27 +89,23 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
   }
 
   async function handleSubmit() {
-    if (iWon === null || !user?.profile) return
+    if (iWon !== true || !user?.profile) return
     setLoading(true)
     try {
-      const winnerId = iWon ? user.id : (opponent?.id ?? '')
-      const loserId = iWon ? (opponent?.id ?? '') : user.id
-      const wScore = iWon ? (parseInt(myScore) || null) : (parseInt(oppScore) || null)
-      const lScore = iWon ? (parseInt(oppScore) || null) : (parseInt(myScore) || null)
+      const winnerId = user.id
+      const loserId = opponent?.id ?? ''
+      const wScore = parseInt(myScore) || null
+      const lScore = parseInt(oppScore) || null
       await reportScore(challenge.id, winnerId, loserId, wScore, lScore, user.id)
-      if (iWon) {
-        setConfirmed(true)
-        setTimeout(launchConfetti, 100)
-      } else {
-        onComplete()
-      }
-    } catch (e: any) {
-      alert(e.message)
+      setSuccess(true)
+      setTimeout(launchConfetti, 100)
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Something went wrong.')
     }
     setLoading(false)
   }
 
-  if (confirmed) {
+  if (success) {
     return (
       <div className="sheet-overlay">
         <div className="sheet" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -118,20 +114,10 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
           <div style={{ textAlign: 'center', padding: '24px 20px 20px', position: 'relative', zIndex: 11 }}>
             <div style={{ fontSize: 52, marginBottom: 8 }}>🏆</div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 28, fontWeight: 800, textTransform: 'uppercase', color: '#201c1d', letterSpacing: -0.5, marginBottom: 4 }}>
-              Result Reported!
+              Result posted
             </div>
             <div style={{ fontSize: 13, color: '#7a7672', fontWeight: 300, lineHeight: 1.5 }}>
-              {opponent?.full_name} has 2 hours to confirm.<br />It auto-confirms if they don't respond.
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10, margin: '0 20px 20px' }}>
-            <div style={{ flex: 1, background: '#f0f8d0', borderRadius: 8, padding: 14, textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 26, fontWeight: 800, color: '#4a6000', lineHeight: 1 }}>
-                Pending
-              </div>
-              <div style={{ fontSize: 10, color: '#7a9000', marginTop: 3, textTransform: 'uppercase', letterSpacing: 1, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
-                Awaiting Confirm
-              </div>
+              The score is final and rankings are updated.
             </div>
           </div>
           <div style={{ padding: '0 20px' }}>
@@ -147,14 +133,13 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
       <div className="sheet">
         <div className="sheet-handle" />
 
-        {/* Match header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 20px 0' }}>
           <div style={{ textAlign: 'center', width: 100 }}>
             <img src={user?.profile?.photo_url || ''} alt="You" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 6px', display: 'block', border: iWon === true ? '2px solid #c4e012' : '2px solid #e6e4e0' }}
               onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=Me&background=201c1d&color=c4e012&size=104` }} />
             <div style={{ fontSize: 12, fontWeight: 500, color: '#201c1d' }}>You</div>
             <div style={{ fontSize: 10, color: iWon === true ? '#4a6000' : '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginTop: 2 }}>
-              {iWon === true ? 'Winner' : 'Reporter'}
+              {iWon === true ? 'Winner' : '—'}
             </div>
           </div>
           <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#f6f5f3', border: '1px solid #e6e4e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 800, color: '#aaa79f', flexShrink: 0 }}>VS</div>
@@ -165,47 +150,50 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
           </div>
         </div>
 
-        {/* Who won */}
         <div style={{ padding: '20px 20px 0' }}>
           <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 10 }}>Who won?</div>
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <div onClick={() => setIWon(true)} style={{ flex: 1, padding: '14px 8px', borderRadius: 8, border: `2px solid ${iWon === true ? '#c4e012' : '#e6e4e0'}`, background: iWon === true ? '#f8fce8' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>🏆</div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === true ? '#4a6000' : '#201c1d' }}>I Won</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === true ? '#4a6000' : '#201c1d' }}>I won</div>
             </div>
             <div onClick={() => setIWon(false)} style={{ flex: 1, padding: '14px 8px', borderRadius: 8, border: `2px solid ${iWon === false ? '#e07070' : '#e6e4e0'}`, background: iWon === false ? '#fdf0f0' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>😔</div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === false ? '#c0392b' : '#aaa79f' }}>I Lost</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === false ? '#c0392b' : '#aaa79f' }}>I lost</div>
             </div>
           </div>
 
-          {/* Optional score */}
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 8 }}>
-            Score <span style={{ fontWeight: 300, textTransform: 'none', letterSpacing: 0, fontFamily: "'Barlow', sans-serif", fontSize: 10, color: '#cbc8c2' }}>— optional</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f6f5f3', borderRadius: 8, padding: '12px 16px', marginBottom: 6 }}>
-            <span style={{ fontSize: 12, color: '#7a7672', flex: 1 }}>You</span>
-            <input type="number" min={0} max={9} value={myScore} onChange={e => setMyScore(e.target.value)}
-              style={{ width: 52, height: 40, border: '1.5px solid #201c1d', borderRadius: 6, background: '#fff', textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: '#201c1d', outline: 'none' }} />
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: '#cbc8c2' }}>–</span>
-            <input type="number" min={0} max={9} value={oppScore} onChange={e => setOppScore(e.target.value)}
-              style={{ width: 52, height: 40, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: '#201c1d', outline: 'none' }} />
-            <span style={{ fontSize: 12, color: '#7a7672', flex: 1, textAlign: 'right' }}>{opponent?.full_name?.split(' ')[0]}</span>
-          </div>
-          <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, textAlign: 'center', marginBottom: 14 }}>
-            9-game pro set · tap to edit
-          </div>
-
-          {/* Auto-confirm note */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: '10px 14px', background: '#f0f8d0', borderRadius: 6, borderLeft: '3px solid #c4e012' }}>
-            <span style={{ fontSize: 14, flexShrink: 0 }}>⏱️</span>
-            <div style={{ fontSize: 11, color: '#4a6000', lineHeight: 1.5, fontWeight: 300 }}>
-              {opponent?.full_name?.split(' ')[0]} will be notified by text to confirm. If they don't respond within <strong>2 hours</strong>, the result confirms automatically.
+          {iWon === false && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: '10px 14px', background: '#f6f5f3', borderRadius: 6, borderLeft: '3px solid #aaa79f' }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>ℹ️</span>
+              <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.5, fontWeight: 400 }}>
+                Only the <strong style={{ color: '#201c1d' }}>winner</strong> can submit the score. Ask {(opponent as User | undefined)?.full_name?.split(' ')[0] ?? 'your opponent'} to report the result from their account.
+              </div>
             </div>
-          </div>
+          )}
 
-          <button className="btn-primary" onClick={handleSubmit} disabled={iWon === null || loading}>
-            {loading ? 'Submitting…' : 'Submit Result →'}
+          {iWon === true && (
+            <>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 8 }}>
+                Score <span style={{ fontWeight: 300, textTransform: 'none', letterSpacing: 0, fontFamily: "'Barlow', sans-serif", fontSize: 10, color: '#cbc8c2' }}>— optional</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#f6f5f3', borderRadius: 8, padding: '12px 16px', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: '#7a7672', flex: 1 }}>You</span>
+                <input type="number" min={0} max={9} value={myScore} onChange={e => setMyScore(e.target.value)}
+                  style={{ width: 52, height: 40, border: '1.5px solid #201c1d', borderRadius: 6, background: '#fff', textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: '#201c1d', outline: 'none' }} />
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 18, fontWeight: 800, color: '#cbc8c2' }}>–</span>
+                <input type="number" min={0} max={9} value={oppScore} onChange={e => setOppScore(e.target.value)}
+                  style={{ width: 52, height: 40, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 800, color: '#201c1d', outline: 'none' }} />
+                <span style={{ fontSize: 12, color: '#7a7672', flex: 1, textAlign: 'right' }}>{opponent?.full_name?.split(' ')[0]}</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, textAlign: 'center', marginBottom: 14 }}>
+                9-game pro set · tap to edit
+              </div>
+            </>
+          )}
+
+          <button className="btn-primary" onClick={handleSubmit} disabled={iWon !== true || loading}>
+            {loading ? 'Submitting…' : 'Post result →'}
           </button>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
         </div>
