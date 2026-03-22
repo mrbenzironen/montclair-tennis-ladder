@@ -1,6 +1,7 @@
 import { useState, type FormEvent, useRef, useEffect, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
+import { digitsOnly } from '../../lib/phone'
 
 const LOGO_URL = 'https://piqwdvnexfplgqmzarmm.supabase.co/storage/v1/object/public/Assets/tennis%20ladder%20logo.png'
 
@@ -12,10 +13,6 @@ export function requiresSignupSelfie(session: Session | null): boolean {
   if (!session?.user?.id) return false
   const v = session.user.user_metadata?.requires_selfie
   return v === true || v === 'true'
-}
-
-function digitsOnly(s: string) {
-  return s.replace(/\D/g, '')
 }
 
 interface LoginScreenProps {

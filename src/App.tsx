@@ -11,6 +11,8 @@ import { TabName } from './types'
 export default function App() {
   const { session, user, loading, refreshProfile } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
+  /** Bumping this while already on Ladder pops nested views (e.g. player profile) back to the list. */
+  const [ladderPopToRoot, setLadderPopToRoot] = useState(0)
 
   // Mandatory post-signup selfie: enforced via user_metadata.requires_selfie (survives refresh /
   // email-confirm login). sessionStorage backs the handoff right after signup before metadata sync.
@@ -56,12 +58,12 @@ export default function App() {
 
   function renderScreen() {
     switch (tab) {
-      case 'ladder': return <LadderScreen />
+      case 'ladder': return <LadderScreen ladderPopToRoot={ladderPopToRoot} />
       case 'challenges': return <ChallengesScreen />
       case 'rules': return <RulesScreen />
       case 'profile': return <ProfileScreen />
-      case 'admin': return isAdmin ? <AdminScreen /> : <LadderScreen />
-      default: return <LadderScreen />
+      case 'admin': return isAdmin ? <AdminScreen /> : <LadderScreen ladderPopToRoot={ladderPopToRoot} />
+      default: return <LadderScreen ladderPopToRoot={ladderPopToRoot} />
     }
   }
 
@@ -72,7 +74,13 @@ export default function App() {
         {renderScreen()}
       </div>
       <nav className="bottom-nav">
-        <button className={`nav-tab ${tab === 'ladder' ? 'active' : ''}`} onClick={() => setTab('ladder')}>
+        <button
+          className={`nav-tab ${tab === 'ladder' ? 'active' : ''}`}
+          onClick={() => {
+            if (tab === 'ladder') setLadderPopToRoot(n => n + 1)
+            setTab('ladder')
+          }}
+        >
           <span className="nav-icon">🏆</span>
           <span className="nav-label">Ladder</span>
         </button>

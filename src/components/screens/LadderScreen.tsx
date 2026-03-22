@@ -1,15 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLadder } from '../../hooks/useLadder'
 import { useAuth } from '../../hooks/useAuth'
 import { User } from '../../types'
 import { ChallengeSheet } from '../modals/ChallengeSheet'
+import { InviteFriendSheet } from '../modals/InviteFriendSheet'
 import { PlayerProfileScreen } from './PlayerProfileScreen'
 
-export function LadderScreen() {
+interface LadderScreenProps {
+  /** When this increments (e.g. user taps Ladder tab again), close player profile and sheets. */
+  ladderPopToRoot?: number
+}
+
+export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
   const { players, loading } = useLadder()
   const { user } = useAuth()
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [challengeTarget, setChallengeTarget] = useState<User | null>(null)
+  const [inviteFriendOpen, setInviteFriendOpen] = useState(false)
+  const [inviteSentToast, setInviteSentToast] = useState(false)
+
+  useEffect(() => {
+    setSelectedPlayer(null)
+    setChallengeTarget(null)
+    setInviteFriendOpen(false)
+  }, [ladderPopToRoot])
 
   const ladderName = user?.profile?.ladder?.name ?? 'Advanced'
 
@@ -107,6 +121,34 @@ export function LadderScreen() {
             )
           })
         )}
+
+        <div style={{ padding: '20px 20px 16px', borderTop: '1px solid #e6e4e0', marginTop: 4, background: '#fafaf8' }}>
+          <button
+            type="button"
+            onClick={() => setInviteFriendOpen(true)}
+            style={{
+              width: '100%',
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              padding: '14px 20px',
+              border: '1.5px solid #201c1d',
+              background: '#fff',
+              color: '#201c1d',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}
+          >
+            Invite a friend
+          </button>
+          {inviteSentToast && (
+            <div style={{ marginTop: 10, textAlign: 'center', fontSize: 12, color: '#4a6000', fontWeight: 500 }}>
+              Invite sent.
+            </div>
+          )}
+        </div>
         <div style={{ height: 12 }} />
       </div>
 
@@ -115,6 +157,17 @@ export function LadderScreen() {
           target={challengeTarget}
           onClose={() => setChallengeTarget(null)}
           onSent={() => setChallengeTarget(null)}
+        />
+      )}
+
+      {inviteFriendOpen && (
+        <InviteFriendSheet
+          onClose={() => setInviteFriendOpen(false)}
+          onSent={() => {
+            setInviteFriendOpen(false)
+            setInviteSentToast(true)
+            window.setTimeout(() => setInviteSentToast(false), 4000)
+          }}
         />
       )}
     </div>
