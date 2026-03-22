@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
 import { sendChallenge } from '../../lib/challenges'
+import { getChallengesDeepLinkUrl } from '../../lib/appUrl'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
 import { openSmsComposer } from '../../lib/sms'
 
@@ -85,7 +86,7 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
           {[
             { icon: '📅', title: '14 days to play', sub: 'Arrange within 14 days of acceptance.' },
             { icon: '🎾', title: '9-game pro set', sub: 'You bring balls. Venue is their choice.' },
-            { icon: '📱', title: 'Text them (optional)', sub: 'After you send, your SMS app opens with a message you can send to nudge them.' },
+            { icon: '📱', title: 'Text them', sub: 'Your SMS app opens to send them a message with a link to the Challenges tab so they can accept or decline.' },
           ].map(r => (
             <div key={r.title} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid #e6e4e0' }}>
               <div style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{r.icon}</div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { LoginScreen, SignupSelfieStep, PENDING_SELFIE_KEY, requiresSignupSelfie } from './components/screens/LoginScreen'
 import { LadderScreen } from './components/screens/LadderScreen'
@@ -13,6 +13,19 @@ export default function App() {
   const [tab, setTab] = useState<TabName>('ladder')
   /** Bumping this while already on Ladder pops nested views (e.g. player profile) back to the list. */
   const [ladderPopToRoot, setLadderPopToRoot] = useState(0)
+
+  // Deep link from SMS etc.: https://…/?tab=challenges (after login, opens Challenges tab)
+  useEffect(() => {
+    if (!session || !user) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'challenges') {
+      setTab('challenges')
+      params.delete('tab')
+      const qs = params.toString()
+      const path = `${window.location.pathname}${qs ? `?${qs}` : ''}`
+      window.history.replaceState({}, document.title, path)
+    }
+  }, [session, user])
 
   // Mandatory post-signup selfie: enforced via user_metadata.requires_selfie (survives refresh /
   // email-confirm login). sessionStorage backs the handoff right after signup before metadata sync.
