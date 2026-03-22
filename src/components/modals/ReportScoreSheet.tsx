@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import type { Challenge, User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
+import { getErrorMessage } from '../../lib/errors'
 import { reportScore } from '../../lib/challenges'
 
 interface Props {
@@ -16,6 +17,7 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
   const [oppScore, setOppScore] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const isChallenger = challenge.challenger_id === user?.id
@@ -100,7 +102,7 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
       setSuccess(true)
       setTimeout(launchConfetti, 100)
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Something went wrong.')
+      setSubmitError(getErrorMessage(e))
     }
     setLoading(false)
   }
@@ -155,7 +157,7 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
             <div onClick={() => setIWon(true)} style={{ flex: 1, padding: '14px 8px', borderRadius: 8, border: `2px solid ${iWon === true ? '#c4e012' : '#e6e4e0'}`, background: iWon === true ? '#f8fce8' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>🏆</div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === true ? '#4a6000' : '#201c1d' }}>I won</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 400, letterSpacing: 0.5, textTransform: 'uppercase', color: iWon === true ? '#4a6000' : '#201c1d' }}>I won</div>
             </div>
             <div onClick={() => setIWon(false)} style={{ flex: 1, padding: '14px 8px', borderRadius: 8, border: `2px solid ${iWon === false ? '#e07070' : '#e6e4e0'}`, background: iWon === false ? '#fdf0f0' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
               <div style={{ fontSize: 22, marginBottom: 4 }}>😔</div>
@@ -190,6 +192,12 @@ export function ReportScoreSheet({ challenge, onClose, onComplete }: Props) {
                 9-game pro set · tap to edit
               </div>
             </>
+          )}
+
+          {submitError && (
+            <div style={{ marginBottom: 12, padding: '10px 14px', background: '#fde8e8', borderRadius: 6, fontSize: 12, color: '#c0392b', lineHeight: 1.45 }}>
+              {submitError}
+            </div>
           )}
 
           <button className="btn-primary" onClick={handleSubmit} disabled={iWon !== true || loading}>

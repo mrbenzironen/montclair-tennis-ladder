@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getErrorMessage } from './errors'
 
 const CHALLENGE_WINDOW_HOURS = 48
 const PLAY_WINDOW_DAYS = 14
@@ -193,7 +194,11 @@ async function finalizeMatch(matchId: string) {
     winner_id: match.winner_id,
     loser_id: match.loser_id,
   })
-  if (statsErr) throw statsErr
+  if (statsErr) {
+    throw new Error(
+      getErrorMessage(statsErr, 'Could not update wins and losses. If this persists, contact support.')
+    )
+  }
 
   await supabase.functions.invoke('send-sms', {
     body: { type: 'match_confirmed', matchId },
