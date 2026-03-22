@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
 import { sendChallenge } from '../../lib/challenges'
 import { getChallengesDeepLinkUrl } from '../../lib/appUrl'
+import { supabase } from '../../lib/supabase'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
 import { openSmsComposer } from '../../lib/sms'
 
@@ -17,6 +18,20 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  /** Fresh phone from DB so SMS To field isn’t empty due to stale list rows. */
+  const [theirPhone, setTheirPhone] = useState(target.phone ?? '')
+
+  useEffect(() => {
+    setTheirPhone(target.phone ?? '')
+    let cancelled = false
+    void (async () => {
+      const { data } = await supabase.from('users').select('phone').eq('id', target.id).maybeSingle()
+      if (!cancelled && data?.phone != null) setTheirPhone(data.phone)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [target.id, target.phone])
 
   async function handleSend() {
     if (!user?.profile) return
@@ -33,8 +48,7 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
       const myFirst = user.profile.full_name.split(' ')[0]
       const link = getChallengesDeepLinkUrl()
       const msg = `Hi ${theirFirst}, it's ${myFirst}. I've challenged you on the Montclair Tennis Ladder — open this link to accept or decline in the app: ${link}`
-      const phone = normalizeUsPhoneE164(target.phone || '')
-      openSmsComposer(msg, phone)
+      openSmsComposer(msg, theirPhone)
       onSent()
     } catch (e: any) {
       setError(e.message)
@@ -99,6 +113,12 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
             </div>
           ))}
         </div>
+
+        {normalizeUsPhoneE164(theirPhone) === null && (
+          <div style={{ margin: '0 20px 12px', padding: '10px 14px', background: '#f6f5f3', borderRadius: 6, fontSize: 12, color: '#7a7672', lineHeight: 1.45 }}>
+            We don’t have a valid phone number for this player, so Messages may open without their name in the To field. Ask them to add a phone number in Profile.
+          </div>
+        )}
 
         {error && (
           <div style={{ margin: '0 20px 12px', padding: '10px 14px', background: '#fde8e8', borderRadius: 6, fontSize: 12, color: '#c0392b' }}>
