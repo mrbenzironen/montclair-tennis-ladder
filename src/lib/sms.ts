@@ -1,11 +1,11 @@
-import { normalizeUsPhoneE164 } from './phone'
+import { digitsOnly, normalizeUsPhoneE164 } from './phone'
 
 /**
  * Opens the device SMS app with an optional recipient and body.
- * - E.164 must be URL-encoded (`+` → `%2B`) or the To field is often left blank.
- * - iOS expects `sms:addr&body=` (ampersand before body).
- * - Android: `smsto:addr?body=` with the same encoded address.
- * Programmatic `<a href>` click tends to work more reliably than `location.assign` in PWAs/in-app browsers.
+ * US numbers: use 10 digits only in the URI (no + / %2B) — most reliably fills the To field.
+ * iOS: `sms:5551234567&body=` (ampersand before body).
+ * Android: `smsto:5551234567?body=`
+ * Non-US E.164: encoded in the URI.
  */
 export function openSmsComposer(body: string, phoneRaw: string | null | undefined) {
   const encodedBody = encodeURIComponent(body)
@@ -16,15 +16,22 @@ export function openSmsComposer(body: string, phoneRaw: string | null | undefine
     return
   }
 
-  const addr = encodeURIComponent(e164)
+  const d = digitsOnly(e164)
+  const addressInUri =
+    d.length === 11 && d.startsWith('1')
+      ? d.slice(1)
+      : d.length === 10
+        ? d
+        : encodeURIComponent(e164)
+
   const ua = navigator.userAgent || ''
   const isIOS =
     /iPhone|iPad|iPod/i.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 
   const href = isIOS
-    ? `sms:${addr}&body=${encodedBody}`
-    : `smsto:${addr}?body=${encodedBody}`
+    ? `sms:${addressInUri}&body=${encodedBody}`
+    : `smsto:${addressInUri}?body=${encodedBody}`
 
   navigateSms(href)
 }

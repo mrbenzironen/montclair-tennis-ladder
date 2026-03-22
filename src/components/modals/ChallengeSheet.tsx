@@ -50,11 +50,58 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
       const myFirst = user.profile.full_name.split(' ')[0]
       const link = getChallengesDeepLinkUrl()
       const msg = `Hi ${theirFirst}, it's ${myFirst}. I've challenged you on the Montclair Tennis Ladder — open this link to accept or decline in the app: ${link}`
-      setSmsDraft({ body: msg, phone: theirPhone })
+      const { data: phoneRow } = await supabase.from('users').select('phone').eq('id', target.id).maybeSingle()
+      const phoneForSms = (phoneRow?.phone ?? theirPhone ?? '').trim()
+      setSmsDraft({ body: msg, phone: phoneForSms })
     } catch (e: any) {
       setError(e.message)
     }
     setLoading(false)
+  }
+
+  function handleOpenMessages() {
+    if (smsDraft) openSmsComposer(smsDraft.body, smsDraft.phone)
+    setSmsDraft(null)
+    onSent()
+  }
+
+  function handleSkipSms() {
+    setSmsDraft(null)
+    onSent()
+  }
+
+  if (smsDraft) {
+    const theirFirst = target.full_name.split(' ')[0]
+    return (
+      <div className="sheet-overlay" onClick={e => e.target === e.currentTarget && handleSkipSms()}>
+        <div className="sheet">
+          <div className="sheet-handle" />
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 20, fontWeight: 800, textTransform: 'uppercase', color: '#201c1d', padding: '16px 20px 8px' }}>
+            Text {theirFirst} about your challenge?
+          </div>
+          <div style={{ fontSize: 13, color: '#7a7672', fontWeight: 300, lineHeight: 1.55, padding: '0 20px 16px' }}>
+            Next we’ll open your <strong style={{ color: '#201c1d', fontWeight: 600 }}>Messages</strong> (or SMS) app with a draft text so they know you challenged them on the ladder, with a link to respond.
+          </div>
+          <div style={{ margin: '0 20px 16px', padding: '12px 14px', background: '#f0f8d0', borderRadius: 8, border: '1px solid #c4e012', fontSize: 12, color: '#4a6000', lineHeight: 1.5 }}>
+            <strong style={{ display: 'block', marginBottom: 6, color: '#201c1d' }}>If your browser asks to open another app</strong>
+            That prompt is your phone checking that the website may open <strong>Messages</strong>. Choose <strong>Allow</strong> (or Open) — we’re only doing that so you can send this text to {theirFirst}.
+          </div>
+          {normalizeUsPhoneE164(smsDraft.phone) === null && (
+            <div style={{ margin: '0 20px 16px', padding: '10px 14px', background: '#fff8e6', borderRadius: 6, fontSize: 12, color: '#7a3a10', lineHeight: 1.45 }}>
+              We still don’t have a valid cell number for {theirFirst}. Messages may open with only the draft text — ask them to add a phone in Profile.
+            </div>
+          )}
+          <div style={{ padding: '0 20px' }}>
+            <button type="button" className="btn-primary" onClick={handleOpenMessages} style={{ background: '#c4e012', color: '#201c1d' }}>
+              Open Messages →
+            </button>
+            <button type="button" className="btn-secondary" onClick={handleSkipSms}>
+              Skip for now
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
