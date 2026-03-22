@@ -45,15 +45,17 @@ export async function sendChallenge(
     )
   }
 
-  // Check existing challenges
-  const { data: existing } = await supabase
+  // One active challenge per player (pending or accepted, unplayed): cannot send if already involved
+  const { data: myActive } = await supabase
     .from('challenges')
     .select('id')
     .or(`challenger_id.eq.${challengerId},challenged_id.eq.${challengerId}`)
     .in('status', ['pending', 'accepted'])
 
-  if (existing && existing.length >= 2) {
-    throw new Error('You already have an active challenge. Resolve it before sending another.')
+  if (myActive && myActive.length > 0) {
+    throw new Error(
+      'You already have an active challenge. Withdraw, respond, or finish the match in the Challenges tab before challenging someone else.'
+    )
   }
 
   const deadline = new Date()
@@ -187,10 +189,11 @@ async function finalizeMatch(matchId: string) {
     .update({ status: 'completed' })
     .eq('id', match.challenge_id)
 
-  await Promise.all([
-    supabase.rpc('increment_matches_played', { user_id: match.winner_id }),
-    supabase.rpc('increment_matches_played', { user_id: match.loser_id }),
-  ])
+  const { error: statsErr } = await supabase.rpc('record_match_for_users', {
+    winner_id: match.winner_id,
+    loser_id: match.loser_id,
+  })
+  if (statsErr) throw statsErr
 
   await supabase.functions.invoke('send-sms', {
     body: { type: 'match_confirmed', matchId },

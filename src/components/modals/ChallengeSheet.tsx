@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
 import { sendChallenge } from '../../lib/challenges'
+import { normalizeUsPhoneE164 } from '../../lib/phone'
+import { openSmsComposer } from '../../lib/sms'
 
 interface Props {
   target: User
   onClose: () => void
+  /** Called after the challenge is saved and SMS composer is opened (or skipped). */
   onSent: () => void
 }
 
@@ -25,6 +28,10 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
         user.profile.ladder_id!,
         false
       )
+      const first = target.full_name.split(' ')[0]
+      const msg = `${user.profile.full_name} challenged you on the Montclair Tennis Ladder — open the app to respond: https://montclair.tennis`
+      const phone = normalizeUsPhoneE164(target.phone || '')
+      openSmsComposer(msg, phone)
       onSent()
     } catch (e: any) {
       setError(e.message)
@@ -78,7 +85,7 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
           {[
             { icon: '📅', title: '14 days to play', sub: 'Arrange within 14 days of acceptance.' },
             { icon: '🎾', title: '9-game pro set', sub: 'You bring balls. Venue is their choice.' },
-            { icon: '📱', title: 'Numbers revealed on accept', sub: 'Both players can text each other.' },
+            { icon: '📱', title: 'Text them (optional)', sub: 'After you send, your SMS app opens with a message you can send to nudge them.' },
           ].map(r => (
             <div key={r.title} style={{ display: 'flex', gap: 10, padding: '9px 0', borderBottom: '1px solid #e6e4e0' }}>
               <div style={{ fontSize: 15, flexShrink: 0, marginTop: 1 }}>{r.icon}</div>

@@ -12,7 +12,7 @@ interface LadderScreenProps {
 }
 
 export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
-  const { players, loading } = useLadder()
+  const { players, loading, refetch, myActiveChallenge } = useLadder()
   const { user } = useAuth()
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [challengeTarget, setChallengeTarget] = useState<User | null>(null)
@@ -79,6 +79,38 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
             </div>
           )}
         </div>
+
+        {myActiveChallenge && !loading && (
+          <div
+            style={{
+              margin: '0 20px 12px',
+              padding: '12px 14px',
+              background: '#fff8e6',
+              borderRadius: 8,
+              border: '1px solid rgba(224, 145, 79, 0.45)',
+              fontSize: 12,
+              color: '#5c4518',
+              lineHeight: 1.45,
+            }}
+          >
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: '#b35a18', marginBottom: 4 }}>
+              {myActiveChallenge.challenger_id === user?.id ? 'Challenge pending' : 'Challenge needs you'}
+            </div>
+            {myActiveChallenge.challenger_id === user?.id ? (
+              <div>
+                Waiting for{' '}
+                <strong style={{ color: '#201c1d' }}>
+                  {(myActiveChallenge.challenged as { full_name?: string } | undefined)?.full_name?.split(' ')[0] ?? 'your opponent'}
+                </strong>
+                . You can’t challenge anyone else until this is withdrawn or the match is finished. Use the Challenges tab to withdraw.
+              </div>
+            ) : (
+              <div>
+                Open the <strong style={{ color: '#201c1d' }}>Challenges</strong> tab to accept or decline. You can’t send a new challenge until this one is resolved.
+              </div>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#aaa79f', fontSize: 13 }}>
@@ -159,7 +191,10 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
         <ChallengeSheet
           target={challengeTarget}
           onClose={() => setChallengeTarget(null)}
-          onSent={() => setChallengeTarget(null)}
+          onSent={() => {
+            setChallengeTarget(null)
+            void refetch()
+          }}
         />
       )}
 

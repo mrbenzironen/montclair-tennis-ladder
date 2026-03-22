@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
+import { InviteFriendSheet } from '../modals/InviteFriendSheet'
 
 type AccountScreen = 'photo' | 'phone' | 'email' | 'contact' | 'leave' | null
 
@@ -8,6 +9,8 @@ export function ProfileScreen() {
   const { user, refreshProfile, signOut } = useAuth()
   const [accountScreen, setAccountScreen] = useState<AccountScreen>(null)
   const [leaveOn, setLeaveOn] = useState(user?.profile?.on_leave ?? false)
+  const [inviteFriendOpen, setInviteFriendOpen] = useState(false)
+  const [inviteToast, setInviteToast] = useState(false)
 
   const profile = user?.profile
   if (!profile) return <div className="loading-screen"><div className="spinner" /></div>
@@ -120,6 +123,29 @@ export function ProfileScreen() {
           </div>
         </div>
 
+        {/* Invite */}
+        <div style={{ margin: '12px 14px 0', background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: '#f0f8d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>👋</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 500, color: '#201c1d', marginBottom: 2 }}>Invite a friend</div>
+              <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.4 }}>Share a sign-up link with your phone’s share sheet or copy the message.</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setInviteFriendOpen(true)}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '8px 12px', border: '1.5px solid #201c1d', background: 'transparent', color: '#201c1d', borderRadius: 4, cursor: 'pointer', flexShrink: 0 }}
+            >
+              Invite
+            </button>
+          </div>
+          {inviteToast && (
+            <div style={{ padding: '0 14px 12px', fontSize: 12, color: '#4a6000', fontWeight: 500 }}>
+              Invite link ready.
+            </div>
+          )}
+        </div>
+
         {/* Account */}
         <div style={{ margin: '12px 14px 0', background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <div style={{ padding: '12px 14px', borderBottom: '1px solid #f0ede8' }}>
@@ -155,6 +181,16 @@ export function ProfileScreen() {
         </div>
         <div style={{ height: 20 }} />
       </div>
+
+      {inviteFriendOpen && (
+        <InviteFriendSheet
+          onClose={() => setInviteFriendOpen(false)}
+          onSent={() => {
+            setInviteToast(true)
+            window.setTimeout(() => setInviteToast(false), 4000)
+          }}
+        />
+      )}
     </div>
   )
 }
