@@ -29,8 +29,10 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
         user.profile.ladder_id!,
         false
       )
-      const first = target.full_name.split(' ')[0]
-      const msg = `${user.profile.full_name} challenged you on the Montclair Tennis Ladder — open the app to respond: https://montclair.tennis`
+      const theirFirst = target.full_name.split(' ')[0]
+      const myFirst = user.profile.full_name.split(' ')[0]
+      const link = getChallengesDeepLinkUrl()
+      const msg = `Hi ${theirFirst}, it's ${myFirst}. I've challenged you on the Montclair Tennis Ladder — open this link to accept or decline in the app: ${link}`
       const phone = normalizeUsPhoneE164(target.phone || '')
       openSmsComposer(msg, phone)
       onSent()
