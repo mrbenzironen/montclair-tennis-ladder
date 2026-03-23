@@ -169,7 +169,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
       if (upErr) throw new Error(upErr.message)
 
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
-      const publicUrl = pub.publicUrl
+      const publicUrl = `${pub.publicUrl}?v=${Date.now()}`
 
       const { error: dbErr } = await supabase.from('users').update({ photo_url: publicUrl }).eq('id', userId)
       if (dbErr) throw new Error(dbErr.message)

@@ -264,7 +264,8 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
       if (upErr) throw upErr
 
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
-      const { error: dbErr } = await supabase.from('users').update({ photo_url: pub.publicUrl }).eq('id', user.id)
+      const photoUrl = `${pub.publicUrl}?v=${Date.now()}`
+      const { error: dbErr } = await supabase.from('users').update({ photo_url: photoUrl }).eq('id', user.id)
       if (dbErr) throw dbErr
 
       await refreshProfile()
