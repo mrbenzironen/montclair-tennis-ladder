@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { InviteFriendSheet } from '../modals/InviteFriendSheet'
@@ -198,8 +198,11 @@ export function ProfileScreen() {
 // ── Account sub-screens ────────────────────────────────────────
 function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: () => void }) {
   const { user, refreshProfile } = useAuth()
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const libraryInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [photoError, setPhotoError] = useState('')
   const [phone, setPhone] = useState(user?.profile?.phone ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
   const [password, setPassword] = useState('')
@@ -246,6 +249,43 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
     await supabase.from('users').delete().eq('id', user!.id)
     await supabase.auth.signOut()
     setLoading(false)
+  }
+
+  async function uploadPhoto(file: File) {
+    if (!user?.id) return
+    setLoading(true)
+    setPhotoError('')
+    try {
+      const path = `${user.id}/profile.jpg`
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: true,
+      })
+      if (upErr) throw upErr
+
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+      const { error: dbErr } = await supabase.from('users').update({ photo_url: pub.publicUrl }).eq('id', user.id)
+      if (dbErr) throw dbErr
+
+      await refreshProfile()
+      setSaved(true)
+      setTimeout(() => setSaved(false), 1500)
+    } catch (e: unknown) {
+      setPhotoError(e instanceof Error ? e.message : 'Could not upload photo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handlePhotoFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please choose an image file.')
+      return
+    }
+    e.currentTarget.value = ''
+    void uploadPhoto(file)
   }
 
   return (
@@ -346,12 +386,52 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
                 <div style={{ fontSize: 12, color: '#aaa79f', textAlign: 'center', lineHeight: 1.5, marginBottom: 16, fontWeight: 300 }}>
                   Your photo appears on the ladder and helps other players recognise you.
                 </div>
-                <button style={{ width: '100%', padding: 13, marginBottom: 10, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => cameraInputRef.current?.click()}
+                  style={{ width: '100%', padding: 13, marginBottom: 10, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}
+                >
                   📷 Take a New Selfie
                 </button>
-                <button style={{ width: '100%', padding: 13, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => libraryInputRef.current?.click()}
+                  style={{ width: '100%', padding: 13, border: '1.5px solid #e6e4e0', borderRadius: 6, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: 500, color: '#201c1d' }}
+                >
                   🖼️ Choose from Library
                 </button>
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handlePhotoFile}
+                  style={{ display: 'none' }}
+                />
+                <input
+                  ref={libraryInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoFile}
+                  style={{ display: 'none' }}
+                />
+                {loading && (
+                  <div style={{ fontSize: 12, color: '#7a7672', textAlign: 'center', marginTop: 12 }}>
+                    Uploading photo…
+                  </div>
+                )}
+                {saved && (
+                  <div style={{ fontSize: 12, color: '#4a6000', textAlign: 'center', marginTop: 10 }}>
+                    Photo updated.
+                  </div>
+                )}
+                {photoError && (
+                  <div style={{ fontSize: 12, color: '#c0392b', textAlign: 'center', marginTop: 10, lineHeight: 1.45 }}>
+                    {photoError}
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ margin: '12px 14px', padding: '12px 14px', background: '#f0f8d0', borderRadius: 8, borderLeft: '3px solid #c4e012', fontSize: 12, color: '#4a6000', lineHeight: 1.5 }}>

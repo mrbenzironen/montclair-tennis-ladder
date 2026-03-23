@@ -1,4 +1,4 @@
-import { useState, type FormEvent, useRef, useEffect, useCallback } from 'react'
+import { useState, type FormEvent, type ChangeEvent, useRef, useEffect, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { MONTCLAIR_LADDER_LOGO_URL } from '../../lib/branding'
@@ -29,10 +29,12 @@ interface SignupSelfieStepProps {
  */
 export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const libraryInputRef = useRef<HTMLInputElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const [phase, setPhase] = useState<'live' | 'preview'>('live')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [captureBlob, setCaptureBlob] = useState<Blob | null>(null)
+  const [captureContentType, setCaptureContentType] = useState('image/jpeg')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [videoReady, setVideoReady] = useState(false)
@@ -116,6 +118,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
         const url = URL.createObjectURL(blob)
         setPreviewUrl(url)
         setCaptureBlob(blob)
+        setCaptureContentType('image/jpeg')
         setPhase('preview')
       },
       'image/jpeg',
@@ -123,10 +126,33 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
     )
   }
 
+  function openLibraryPicker() {
+    setError('')
+    libraryInputRef.current?.click()
+  }
+
+  function chooseFromLibrary(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.')
+      return
+    }
+    stopStream()
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
+    setCaptureBlob(file)
+    setCaptureContentType(file.type || 'image/jpeg')
+    setPhase('preview')
+    e.currentTarget.value = ''
+  }
+
   function retake() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(null)
     setCaptureBlob(null)
+    setCaptureContentType('image/jpeg')
     setPhase('live')
   }
 
@@ -137,7 +163,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
     try {
       const path = `${userId}/profile.jpg`
       const { error: upErr } = await supabase.storage.from('avatars').upload(path, captureBlob, {
-        contentType: 'image/jpeg',
+        contentType: captureContentType || captureBlob.type || 'image/jpeg',
         upsert: true,
       })
       if (upErr) throw new Error(upErr.message)
@@ -262,6 +288,34 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
             >
               Take photo
             </button>
+            <button
+              type="button"
+              onClick={openLibraryPicker}
+              style={{
+                width: '100%',
+                padding: 13,
+                marginTop: 10,
+                border: '1.5px solid #3d3a38',
+                borderRadius: 8,
+                background: 'transparent',
+                color: '#e6e4e0',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 14,
+                fontWeight: 800,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Choose from library
+            </button>
+            <input
+              ref={libraryInputRef}
+              type="file"
+              accept="image/*"
+              onChange={chooseFromLibrary}
+              style={{ display: 'none' }}
+            />
           </>
         )}
 
