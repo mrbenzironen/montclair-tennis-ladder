@@ -49,16 +49,17 @@ export async function sendChallenge(
     )
   }
 
-  // One active challenge per player (pending or accepted, unplayed): cannot send if already involved
-  const { data: myActive } = await supabase
+  // One active outgoing challenge per player (pending or accepted, unplayed).
+  // A player may still send one outgoing challenge while they are being challenged by someone else.
+  const { data: myOutgoingActive } = await supabase
     .from('challenges')
     .select('id')
-    .or(`challenger_id.eq.${challengerId},challenged_id.eq.${challengerId}`)
+    .eq('challenger_id', challengerId)
     .in('status', ['pending', 'accepted'])
 
-  if (myActive && myActive.length > 0) {
+  if (myOutgoingActive && myOutgoingActive.length > 0) {
     throw new Error(
-      'You already have an active challenge. Withdraw, respond, or finish the match in the Challenges tab before challenging someone else.'
+      'You already sent an active challenge. Finish, decline, or withdraw it before sending another.'
     )
   }
 

@@ -401,11 +401,10 @@ export function LoginScreen() {
         }
       }
 
-      const redirectTo = `${window.location.origin}${window.location.pathname || '/'}`
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: redirectTo,
+          emailRedirectTo: 'https://montclair-tennis-ladder.vercel.app',
           ...(isSignUp
             ? {
                 data: {
@@ -487,14 +486,22 @@ export function LoginScreen() {
         <div style={{ display: 'flex', marginBottom: 16, background: '#f6f5f3', borderRadius: 8, padding: 4, flexShrink: 0 }}>
           <button
             type="button"
-            onClick={() => { setIsSignUp(true); setError(''); setLinkSent(false) }}
+            onClick={() => {
+              setIsSignUp(true)
+              setError('')
+              setLinkSent(false)
+            }}
             style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: isSignUp ? '#201c1d' : 'transparent', color: isSignUp ? '#c4e012' : '#aaa79f' }}
           >
             Create Account
           </button>
           <button
             type="button"
-            onClick={() => { setIsSignUp(false); setError(''); setLinkSent(false) }}
+            onClick={() => {
+              setIsSignUp(false)
+              setError('')
+              setLinkSent(false)
+            }}
             style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: !isSignUp ? '#201c1d' : 'transparent', color: !isSignUp ? '#c4e012' : '#aaa79f' }}
           >
             Sign In
@@ -509,70 +516,66 @@ export function LoginScreen() {
             <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45, marginBottom: 16 }}>
               No password needed. The link expires after a short time. You can request another below.
             </div>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setLinkSent(false)}
-            >
+            <button type="button" className="btn-secondary" onClick={() => setLinkSent(false)}>
               Use a different email
             </button>
           </div>
         ) : (
-        <form onSubmit={handleEmailAuth}>
-          {isSignUp && (
-            <>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>First Name</label>
-                  <input className="form-input" placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+          <form onSubmit={handleEmailAuth}>
+            {isSignUp && (
+              <>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>First Name</label>
+                    <input className="form-input" placeholder="First" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Last Name</label>
+                    <input className="form-input" placeholder="Last" value={lastName} onChange={e => setLastName(e.target.value)} required />
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Last Name</label>
-                  <input className="form-input" placeholder="Last" value={lastName} onChange={e => setLastName(e.target.value)} required />
+
+                <div style={{ marginBottom: 12, padding: '12px 14px', background: '#f6f5f3', borderRadius: 8, borderLeft: '3px solid #c4e012' }}>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#201c1d', marginBottom: 4 }}>Montclair ladder</div>
+                  <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45 }}>
+                    One ladder for <strong style={{ color: '#201c1d' }}>4.5 NTRP or better</strong> (advanced players).
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ marginBottom: 12, padding: '12px 14px', background: '#f6f5f3', borderRadius: 8, borderLeft: '3px solid #c4e012' }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#201c1d', marginBottom: 4 }}>Montclair ladder</div>
-                <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45 }}>
-                  One ladder for <strong style={{ color: '#201c1d' }}>4.5 NTRP or better</strong> (advanced players).
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Cell phone</label>
+                  <input
+                    className="form-input"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="(555) 123-4567"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    required
+                  />
+                  <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, marginTop: 6, lineHeight: 1.45 }}>
+                    Shared only with players you are in an active challenge with.
+                  </div>
                 </div>
-              </div>
+              </>
+            )}
 
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Cell phone</label>
-                <input
-                  className="form-input"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder="(555) 123-4567"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
-                  required
-                />
-                <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, marginTop: 6, lineHeight: 1.45 }}>
-                  Shared only with players you are in an active challenge with.
-                </div>
-              </div>
-            </>
-          )}
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Email</label>
-            <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
-          </div>
-
-          {error && (
-            <div style={{ fontSize: 12, color: '#c0392b', marginBottom: 12, padding: '10px 14px', background: '#fde8e8', borderRadius: 6 }}>
-              {error}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Email</label>
+              <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
             </div>
-          )}
 
-          <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15, marginBottom: 8 }}>
-            {loading ? 'Sending link…' : isSignUp ? 'Email me a sign-up link →' : 'Email me a sign-in link →'}
-          </button>
-        </form>
+            {error && (
+              <div style={{ fontSize: 12, color: '#c0392b', marginBottom: 12, padding: '10px 14px', background: '#fde8e8', borderRadius: 6 }}>
+                {error}
+              </div>
+            )}
+
+            <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15, marginBottom: 8 }}>
+              {loading ? 'Sending link…' : isSignUp ? 'Email me a sign-up link →' : 'Email me a sign-in link →'}
+            </button>
+          </form>
         )}
       </div>
     </div>
