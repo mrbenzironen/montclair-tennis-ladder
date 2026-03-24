@@ -3,10 +3,10 @@ export function RulesScreen() {
     {
       icon: '🎯', bg: '#f0f8d0', title: 'Challenges',
       rules: [
-        { text: 'Challenge up to 10 spots above you', note: 'Wildcard extends this to 20 spots.', type: 'key' },
+        { text: 'Challenge up to 5 spots above you', note: 'A wildcard extends this to 10 spots.', type: 'key' },
         { text: 'One active challenge at a time', note: 'One outgoing + one incoming simultaneously.', type: 'normal' },
         { text: '48 hours to accept or decline', note: 'No response = automatic forfeit win for the challenger.', type: 'normal' },
-        { text: '14 days to play once accepted', note: 'If not played the challenge expires with no penalty.', type: 'normal' },
+        { text: '7 days to play once accepted', note: 'If not played the challenge expires with no penalty.', type: 'normal' },
         { text: '8-day cooldown after each match', note: 'You must wait 8 days before re-challenging the same player.', type: 'normal' },
         { text: '2 consecutive forfeits = drop 10 spots', note: 'Each additional consecutive forfeit drops another 10 spots.', type: 'warn' },
       ],
@@ -30,7 +30,7 @@ export function RulesScreen() {
       icon: '⚡', bg: '#fef9e0', title: 'Wildcards',
       rules: [
         { text: 'Earned after every 5 matches played', note: 'Forfeits don\'t count.', type: 'key' },
-        { text: 'Wildcard range: up to 20 spots above', note: 'Double the standard 10-spot challenge range.', type: 'normal' },
+        { text: 'Wildcard range: up to 10 spots above', note: 'Double the standard 5-spot challenge range.', type: 'normal' },
         { text: 'No forfeit wins on wildcard challenges', note: 'If the match isn\'t played the challenge is cancelled. No ranking change.', type: 'warn' },
       ],
     },

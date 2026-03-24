@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { NORMAL_CHALLENGE_RANGE, WILDCARD_CHALLENGE_RANGE } from '../lib/challenges'
 import { supabase } from '../lib/supabase'
 import { User } from '../types'
 import { useAuth } from './useAuth'
@@ -117,9 +118,15 @@ export function useLadder() {
 
   const hasActiveChallenge = myActiveChallenge !== null
 
+  const wildcards = user?.profile?.wildcards ?? 0
+
   const playersWithState = players.map(p => {
     const isMe = p.id === myId
-    const inRange = p.rank !== null && myRank - p.rank > 0 && myRank - p.rank <= 10
+    const diff = p.rank !== null ? myRank - p.rank : 0
+    const inRange =
+      p.rank !== null &&
+      diff > 0 &&
+      (diff <= NORMAL_CHALLENGE_RANGE || (diff <= WILDCARD_CHALLENGE_RANGE && wildcards > 0))
     const isEligible =
       !isMe && inRange && !challengedBusyIds.has(p.id) && !hasActiveChallenge
     return { ...p, isMe, isEligible }

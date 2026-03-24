@@ -72,7 +72,7 @@ export function ProfileScreen() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#201c1d', marginBottom: 3 }}>{profile.wildcards} wildcard{profile.wildcards !== 1 ? 's' : ''} available</div>
-                <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.4 }}>Challenge up to 20 spots above. Next wildcard after {5 - (profile.matches_played % 5)} more match{5 - (profile.matches_played % 5) !== 1 ? 'es' : ''}.</div>
+                <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.4 }}>Challenge up to 5 spots above (10 with a wildcard). Next wildcard after {5 - (profile.matches_played % 5)} more match{5 - (profile.matches_played % 5) !== 1 ? 'es' : ''}.</div>
               </div>
               {profile.wildcards > 0 && (
                 <button style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '8px 12px', border: '1.5px solid #201c1d', background: 'transparent', color: '#201c1d', borderRadius: 4, cursor: 'pointer' }}>Use</button>
@@ -205,8 +205,6 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
   const [photoError, setPhotoError] = useState('')
   const [phone, setPhone] = useState(user?.profile?.phone ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
   const [message, setMessage] = useState('')
   const [leaveConfirm, setLeaveConfirm] = useState('')
 
@@ -226,8 +224,7 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
 
   async function saveEmail() {
     setLoading(true)
-    if (password) await supabase.auth.updateUser({ email, password })
-    else await supabase.auth.updateUser({ email })
+    await supabase.auth.updateUser({ email })
     await refreshProfile()
     setSaved(true)
     setTimeout(() => { setSaved(false); onBack() }, 1500)
@@ -325,18 +322,10 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
                 <label>Email</label>
                 <input className="form-input" type="email" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
-              <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.5, marginBottom: 14 }}>Used for login. Never shared with other players.</div>
-              <div className="form-field">
-                <label>New Password (optional)</label>
-                <input className="form-input" type="password" value={password} placeholder="Leave blank to keep current" onChange={e => setPassword(e.target.value)} />
-              </div>
-              <div className="form-field" style={{ marginBottom: 0 }}>
-                <label>Confirm Password</label>
-                <input className="form-input" type="password" value={confirm} placeholder="Confirm new password" onChange={e => setConfirm(e.target.value)} />
-              </div>
+              <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, lineHeight: 1.5, marginBottom: 0 }}>Used for magic-link sign-in. Never shared with other players. Changing email may require confirming the new address.</div>
             </div>
             <div style={{ margin: '12px 14px' }}>
-              <button className="btn-primary" onClick={saveEmail} disabled={loading || (password !== '' && password !== confirm)} style={saved ? { background: '#4a6000', color: '#fff' } : {}}>
+              <button className="btn-primary" onClick={saveEmail} disabled={loading} style={saved ? { background: '#4a6000', color: '#fff' } : {}}>
                 {saved ? '✓ Saved!' : loading ? 'Saving…' : 'Save Changes'}
               </button>
             </div>

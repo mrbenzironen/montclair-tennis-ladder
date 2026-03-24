@@ -64,7 +64,7 @@ export default function App() {
   }
 
   if (!session || !user) {
-    return <LoginScreen onLogin={() => {}} />
+    return <LoginScreen />
   }
 
   const isAdmin = user.profile?.is_admin ?? false

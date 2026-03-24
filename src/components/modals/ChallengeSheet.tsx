@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import { User } from '../../types'
 import { useAuth } from '../../hooks/useAuth'
-import { sendChallenge } from '../../lib/challenges'
+import {
+  sendChallenge,
+  NORMAL_CHALLENGE_RANGE,
+  WILDCARD_CHALLENGE_RANGE,
+} from '../../lib/challenges'
 import { getChallengesDeepLinkUrl } from '../../lib/appUrl'
 import { supabase } from '../../lib/supabase'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
@@ -35,6 +39,12 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
     }
   }, [target.id, target.phone])
 
+  const myRank = user?.profile?.rank ?? 999
+  const theirRank = target.rank ?? 999
+  const rankDiff = myRank - theirRank
+  const willUseWildcard =
+    rankDiff > NORMAL_CHALLENGE_RANGE && rankDiff <= WILDCARD_CHALLENGE_RANGE
+
   async function handleSend() {
     if (!user?.profile) return
     setLoading(true)
@@ -44,7 +54,7 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
         user.id,
         target.id,
         user.profile.ladder_id!,
-        false
+        willUseWildcard
       )
       const theirFirst = target.full_name.split(' ')[0]
       const myFirst = user.profile.full_name.split(' ')[0]
@@ -145,10 +155,27 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
           </div>
         </div>
 
+        {willUseWildcard && (
+          <div
+            style={{
+              margin: '0 20px 12px',
+              padding: '10px 14px',
+              background: '#fff8e6',
+              borderRadius: 8,
+              border: '1px solid rgba(224, 145, 79, 0.45)',
+              fontSize: 12,
+              color: '#5c4518',
+              lineHeight: 1.45,
+            }}
+          >
+            <strong style={{ color: '#b35a18' }}>Wildcard</strong> — They’re more than {NORMAL_CHALLENGE_RANGE} spots above you, so this challenge uses 1 of your wildcards.
+          </div>
+        )}
+
         {/* Rules */}
         <div style={{ margin: '0 20px 16px' }}>
           {[
-            { icon: '📅', title: '14 days to play', sub: 'Arrange within 14 days of acceptance.' },
+            { icon: '📅', title: '7 days to play', sub: 'Arrange within 7 days of acceptance.' },
             { icon: '🎾', title: '9-game pro set', sub: 'You bring balls. Venue is their choice.' },
             {
               icon: '📱',

@@ -14,10 +14,6 @@ export function requiresSignupSelfie(session: Session | null): boolean {
   return v === true || v === 'true'
 }
 
-interface LoginScreenProps {
-  onLogin: () => void
-}
-
 interface SignupSelfieStepProps {
   userId: string
   onComplete: () => void
@@ -378,15 +374,15 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
   )
 }
 
-export function LoginScreen({ onLogin }: LoginScreenProps) {
+export function LoginScreen() {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(true)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [linkSent, setLinkSent] = useState(false)
 
   async function handleEmailAuth(e: FormEvent) {
     e.preventDefault()
@@ -399,70 +395,35 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           setError('Enter a valid cell phone number (at least 10 digits).')
           return
         }
-
-        const { data, error: signErr } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: `${firstName} ${lastName}`.trim(),
-              requires_selfie: true,
-            },
-          },
-        })
-
-        if (signErr) {
-          setError(signErr.message)
+        if (!firstName.trim() || !lastName.trim()) {
+          setError('Enter your first and last name.')
           return
         }
-
-        if (data.user) {
-          await supabase.from('users').update({ phone: phone.trim() }).eq('id', data.user.id)
-
-          const { data: ladderData } = await supabase
-            .from('ladders')
-            .select('id')
-            .eq('name', 'Advanced')
-            .single()
-
-          if (ladderData) {
-            const { data: maxRankData } = await supabase
-              .from('users')
-              .select('rank')
-              .eq('ladder_id', ladderData.id)
-              .order('rank', { ascending: false })
-              .limit(1)
-
-            const newRank = maxRankData && maxRankData.length > 0 ? (maxRankData[0].rank ?? 0) + 1 : 1
-
-            await supabase
-              .from('users')
-              .update({
-                ladder_id: ladderData.id,
-                rank: newRank,
-                last_active_at: new Date().toISOString(),
-              })
-              .eq('id', data.user.id)
-          }
-        }
-
-        const { data: sessionData } = await supabase.auth.getSession()
-        if (data.user && sessionData.session) {
-          try {
-            sessionStorage.setItem(PENDING_SELFIE_KEY, data.user.id)
-          } catch {
-            /* private mode */
-          }
-        } else if (data.user && !sessionData.session) {
-          setError('Check your email to confirm your account. After confirming, sign in. You will be asked to take a profile photo before using the ladder.')
-        }
-
-        onLogin()
-      } else {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
-        if (signInErr) setError(signInErr.message)
-        else onLogin()
       }
+
+      const redirectTo = `${window.location.origin}${window.location.pathname || '/'}`
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectTo,
+          ...(isSignUp
+            ? {
+                data: {
+                  full_name: `${firstName} ${lastName}`.trim(),
+                  phone: phone.trim(),
+                  requires_selfie: true,
+                },
+              }
+            : {}),
+        },
+      })
+
+      if (otpErr) {
+        setError(otpErr.message)
+        return
+      }
+
+      setLinkSent(true)
     } finally {
       setLoading(false)
     }
@@ -526,20 +487,37 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <div style={{ display: 'flex', marginBottom: 16, background: '#f6f5f3', borderRadius: 8, padding: 4, flexShrink: 0 }}>
           <button
             type="button"
-            onClick={() => { setIsSignUp(true); setError('') }}
+            onClick={() => { setIsSignUp(true); setError(''); setLinkSent(false) }}
             style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: isSignUp ? '#201c1d' : 'transparent', color: isSignUp ? '#c4e012' : '#aaa79f' }}
           >
             Create Account
           </button>
           <button
             type="button"
-            onClick={() => { setIsSignUp(false); setError('') }}
+            onClick={() => { setIsSignUp(false); setError(''); setLinkSent(false) }}
             style={{ flex: 1, padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', background: !isSignUp ? '#201c1d' : 'transparent', color: !isSignUp ? '#c4e012' : '#aaa79f' }}
           >
             Sign In
           </button>
         </div>
 
+        {linkSent ? (
+          <div style={{ padding: '8px 0 12px' }}>
+            <div style={{ fontSize: 14, color: '#201c1d', fontWeight: 500, marginBottom: 8, lineHeight: 1.5 }}>
+              Check your email — we sent a sign-in link to <strong>{email.trim()}</strong>. Open it on this device to continue.
+            </div>
+            <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45, marginBottom: 16 }}>
+              No password needed. The link expires after a short time. You can request another below.
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setLinkSent(false)}
+            >
+              Use a different email
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleEmailAuth}>
           {isSignUp && (
             <>
@@ -557,7 +535,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <div style={{ marginBottom: 12, padding: '12px 14px', background: '#f6f5f3', borderRadius: 8, borderLeft: '3px solid #c4e012' }}>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: '#201c1d', marginBottom: 4 }}>Montclair ladder</div>
                 <div style={{ fontSize: 12, color: '#7a7672', lineHeight: 1.45 }}>
-                  One ladder for <strong style={{ color: '#201c1d' }}>4.0 NTRP or better</strong> (advanced players).
+                  One ladder for <strong style={{ color: '#201c1d' }}>4.5 NTRP or better</strong> (advanced players).
                 </div>
               </div>
 
@@ -585,11 +563,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <input className="form-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
           </div>
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#aaa79f', marginBottom: 6 }}>Password</label>
-            <input className="form-input" type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} required autoComplete={isSignUp ? 'new-password' : 'current-password'} />
-          </div>
-
           {error && (
             <div style={{ fontSize: 12, color: '#c0392b', marginBottom: 12, padding: '10px 14px', background: '#fde8e8', borderRadius: 6 }}>
               {error}
@@ -597,9 +570,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           )}
 
           <button className="btn-primary" type="submit" disabled={loading} style={{ background: '#c4e012', color: '#201c1d', fontSize: 15, marginBottom: 8 }}>
-            {loading ? 'Setting up your account…' : isSignUp ? 'Create My Account →' : 'Sign In →'}
+            {loading ? 'Sending link…' : isSignUp ? 'Email me a sign-up link →' : 'Email me a sign-in link →'}
           </button>
         </form>
+        )}
       </div>
     </div>
   )

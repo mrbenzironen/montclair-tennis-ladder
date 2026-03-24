@@ -2,9 +2,12 @@ import { supabase } from './supabase'
 import { getErrorMessage } from './errors'
 
 const CHALLENGE_WINDOW_HOURS = 48
-const PLAY_WINDOW_DAYS = 14
-const NORMAL_RANGE = 10
-const WILDCARD_RANGE = 20
+export const PLAY_WINDOW_DAYS = 7
+export const NORMAL_CHALLENGE_RANGE = 5
+export const WILDCARD_CHALLENGE_RANGE = 10
+
+const NORMAL_RANGE = NORMAL_CHALLENGE_RANGE
+const WILDCARD_RANGE = WILDCARD_CHALLENGE_RANGE
 
 export async function sendChallenge(
   challengerId: string,

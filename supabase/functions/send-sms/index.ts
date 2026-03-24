@@ -81,7 +81,7 @@ serve(async (req) => {
       const challengedName = (c.challenged as any)?.full_name
       const challengedPhone = (c.challenged as any)?.phone
       if (type === 'challenge_accepted' && challengerPhone) {
-        const msg = `✅ ${challengedName} accepted your challenge! Arrange your match within 14 days. Their number: ${challengedPhone}. https://montclair.tennis`
+        const msg = `✅ ${challengedName} accepted your challenge! Arrange your match within 7 days. Their number: ${challengedPhone}. https://montclair.tennis`
         await sendSMS(challengerPhone, msg)
       }
       if (type === 'challenge_declined' && challengerPhone) {

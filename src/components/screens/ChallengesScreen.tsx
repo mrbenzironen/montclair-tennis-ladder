@@ -130,7 +130,7 @@ export function ChallengesScreen() {
             {accepted.map(c => {
                   const isChallenger = c.challenger_id === user?.id
                   const opp = isChallenger ? c.challenged : c.challenger
-                  const tl = c.deadline_play ? timeLeft(c.deadline_play) : '14 days'
+                  const tl = c.deadline_play ? timeLeft(c.deadline_play) : '7 days'
                   return (
                     <div key={c.id} style={{ margin: '0 14px 10px', background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.07)', borderLeft: '4px solid #201c1d' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 14px 10px' }}>

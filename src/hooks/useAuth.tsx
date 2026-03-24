@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { syncProfileFromAuthMetadata } from '../lib/syncSignupProfile'
 import { User, AuthUser } from '../types'
 
 interface AuthContextType {
@@ -18,7 +19,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function loadProfile(userId: string, email: string) {
+  async function loadProfile(session: Session | null) {
+    if (!session?.user) {
+      setLoading(false)
+      return
+    }
+    const userId = session.user.id
+    const email = session.user.email ?? ''
     try {
       const { data: profile } = await supabase
         .from('users')
@@ -31,12 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      const synced = await syncProfileFromAuthMetadata(session.user, {
+        id: profile.id,
+        ladder_id: profile.ladder_id,
+        phone: profile.phone,
+        full_name: profile.full_name,
+      })
+
+      let finalProfile = profile
+      if (synced) {
+        const { data: p2 } = await supabase.from('users').select('*').eq('id', userId).single()
+        if (p2) finalProfile = p2
+      }
+
       let ladder = null
-      if (profile.ladder_id) {
+      if (finalProfile.ladder_id) {
         const { data: ladderData } = await supabase
           .from('ladders')
           .select('*')
-          .eq('id', profile.ladder_id)
+          .eq('id', finalProfile.ladder_id)
           .single()
         ladder = ladderData
       }
@@ -44,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         id: userId,
         email,
-        profile: { ...profile, ladder } as User,
+        profile: { ...finalProfile, ladder } as User,
       })
     } catch (e) {
       console.error('loadProfile error:', e)
@@ -55,28 +75,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function refreshProfile() {
-    if (session?.user) {
-      await loadProfile(session.user.id, session.user.email ?? '')
-    }
+    const { data: { session: s } } = await supabase.auth.getSession()
+    if (s?.user) await loadProfile(s)
   }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session?.user) {
-        loadProfile(session.user.id, session.user.email ?? '')
+        void loadProfile(session)
       } else {
         setLoading(false)
       }
     })
 
-    // Do not await Supabase calls inside this callback — it shares the auth lock and can
-    // deadlock signInWithPassword (promise never resolves). loadProfile sets loading false in its own finally.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Do not await Supabase calls inside this callback — it shares the auth lock and can deadlock.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session?.user) {
         queueMicrotask(() => {
-          void loadProfile(session.user.id, session.user.email ?? '')
+          void loadProfile(session)
         })
       } else {
         setUser(null)
