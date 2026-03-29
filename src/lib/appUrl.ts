@@ -5,6 +5,16 @@ export function getAppPublicUrl(): string {
   return 'https://montclair.tennis'
 }
 
+/**
+ * Redirect target for Supabase magic links / PKCE — must match the URL the user actually opened
+ * (custom domain vs Vercel vs localhost). Add every origin you use to Supabase Auth → Redirect URLs.
+ */
+export function getAuthEmailRedirectUrl(): string {
+  if (typeof window === 'undefined') return getAppPublicUrl()
+  const path = window.location.pathname || '/'
+  return `${window.location.origin}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 /** Link that opens the app on the Challenges tab (accept / decline). */
 export function getChallengesDeepLinkUrl(): string {
   return `${getAppPublicUrl()}/?tab=challenges`

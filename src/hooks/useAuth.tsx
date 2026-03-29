@@ -80,14 +80,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let cancelled = false
+
+    async function bootstrapAuth() {
+      if (typeof window !== 'undefined') {
+        const { search, hash } = window.location
+        const hasPkceCode = search.includes('code=')
+        const hasImplicitHash =
+          hash.includes('access_token') || hash.includes('refresh_token') || hash.includes('type=')
+
+        if (hasPkceCode) {
+          const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
+          if (error) {
+            console.error('exchangeCodeForSession', error)
+          } else {
+            const url = new URL(window.location.href)
+            url.searchParams.delete('code')
+            url.searchParams.delete('type')
+            const qs = url.searchParams.toString()
+            window.history.replaceState({}, document.title, `${url.pathname}${qs ? `?${qs}` : ''}${url.hash}`)
+          }
+        } else if (hasImplicitHash) {
+          const { data: { session: implicitSession } } = await supabase.auth.getSession()
+          if (implicitSession) {
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+          }
+        }
+      }
+
+      if (cancelled) return
+      const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
       if (session?.user) {
         void loadProfile(session)
       } else {
         setLoading(false)
       }
-    })
+    }
+
+    void bootstrapAuth()
 
     // Do not await Supabase calls inside this callback — it shares the auth lock and can deadlock.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -102,7 +133,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function signOut() {

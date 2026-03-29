@@ -1,7 +1,8 @@
-import { useState, type FormEvent, type ChangeEvent, useRef, useEffect, useCallback } from 'react'
+import { useState, type FormEvent, type ChangeEvent, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { MONTCLAIR_LADDER_LOGO_URL } from '../../lib/branding'
+import { getAuthEmailRedirectUrl } from '../../lib/appUrl'
 import { digitsOnly } from '../../lib/phone'
 
 /** Set after successful signup so App can show the selfie step before JWT metadata is read (LoginScreen unmounts once auth updates). */
@@ -21,13 +22,14 @@ interface SignupSelfieStepProps {
 
 /**
  * Post-signup camera capture: live preview, oval guide, capture / preview / confirm.
- * Mobile Safari: playsInline + muted on video, user-facing camera, stop tracks on cleanup.
+ * iOS Safari requires getUserMedia to start from a user tap — we open the camera only after "Use camera".
  */
 export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const libraryInputRef = useRef<HTMLInputElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const [phase, setPhase] = useState<'live' | 'preview'>('live')
+  const [phase, setPhase] = useState<'pick' | 'live' | 'preview'>('pick')
+  const [liveAttachKey, setLiveAttachKey] = useState(0)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [captureBlob, setCaptureBlob] = useState<Blob | null>(null)
   const [captureContentType, setCaptureContentType] = useState('image/jpeg')
@@ -41,9 +43,28 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
     if (videoRef.current) videoRef.current.srcObject = null
   }, [])
 
-  const startStream = useCallback(async () => {
+  const attachStreamToVideo = useCallback(async () => {
+    const el = videoRef.current
+    const stream = streamRef.current
+    if (!el || !stream) return
+    el.setAttribute('playsinline', 'true')
+    el.setAttribute('webkit-playsinline', 'true')
+    el.muted = true
+    el.playsInline = true
+    el.srcObject = stream
+    try {
+      await el.play()
+      setVideoReady(true)
+    } catch {
+      setVideoReady(true)
+    }
+  }, [])
+
+  /** Must run from a click/tap (iOS). */
+  const openCameraFromUserGesture = useCallback(async () => {
     setError('')
     stopStream()
+    setVideoReady(false)
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera is not available in this browser. Try Safari or Chrome on your phone.')
       return
@@ -58,15 +79,8 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
         audio: false,
       })
       streamRef.current = stream
-      const el = videoRef.current
-      if (el) {
-        el.setAttribute('playsinline', 'true')
-        el.setAttribute('webkit-playsinline', 'true')
-        el.muted = true
-        el.playsInline = true
-        el.srcObject = stream
-        await el.play()
-      }
+      setLiveAttachKey(k => k + 1)
+      setPhase('live')
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Camera error'
       setError(
@@ -77,15 +91,16 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
     }
   }, [stopStream])
 
+  useLayoutEffect(() => {
+    if (phase !== 'live' || !streamRef.current) return
+    void attachStreamToVideo()
+  }, [phase, liveAttachKey, attachStreamToVideo])
+
   useEffect(() => {
-    if (phase === 'live') {
-      setVideoReady(false)
-      void startStream()
-    }
     return () => {
       stopStream()
     }
-  }, [phase, startStream, stopStream])
+  }, [stopStream])
 
   useEffect(() => {
     return () => {
@@ -149,7 +164,9 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
     setPreviewUrl(null)
     setCaptureBlob(null)
     setCaptureContentType('image/jpeg')
-    setPhase('live')
+    stopStream()
+    setVideoReady(false)
+    setPhase('pick')
   }
 
   async function confirmUpload() {
@@ -202,6 +219,46 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
           padding: '16px 20px calc(24px + env(safe-area-inset-bottom, 0px))',
         }}
       >
+        {phase === 'pick' && (
+          <div style={{ padding: '8px 0 16px', textAlign: 'center' }}>
+            <p style={{ fontSize: 14, color: '#c8c4bc', lineHeight: 1.5, marginBottom: 20 }}>
+              Add a clear photo of your face. On phones, use the camera (recommended) or pick a photo from your library.
+            </p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void openCameraFromUserGesture()}
+              style={{ background: '#c4e012', color: '#201c1d', fontSize: 16, padding: '14px 20px' }}
+            >
+              Use camera
+            </button>
+            <button
+              type="button"
+              onClick={openLibraryPicker}
+              style={{
+                width: '100%',
+                padding: 13,
+                marginTop: 12,
+                border: '1.5px solid #3d3a38',
+                borderRadius: 8,
+                background: 'transparent',
+                color: '#e6e4e0',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 14,
+                fontWeight: 800,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              Choose from library
+            </button>
+            {error ? (
+              <div style={{ fontSize: 13, color: '#ffb4b4', marginTop: 16, padding: '0 8px' }}>{error}</div>
+            ) : null}
+          </div>
+        )}
+
         {phase === 'live' && (
           <>
             <div
@@ -215,7 +272,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
                 background: '#000',
                 flex: 1,
                 minHeight: 280,
-                maxHeight: 'min(62vh, 520px)',
+                maxHeight: 'min(62dvh, 520px)',
               }}
             >
               <video
@@ -258,7 +315,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
                 {error}
                 <button
                   type="button"
-                  onClick={() => void startStream()}
+                  onClick={() => void openCameraFromUserGesture()}
                   style={{
                     display: 'block',
                     margin: '12px auto 0',
@@ -305,15 +362,17 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
             >
               Choose from library
             </button>
-            <input
-              ref={libraryInputRef}
-              type="file"
-              accept="image/*"
-              onChange={chooseFromLibrary}
-              style={{ display: 'none' }}
-            />
           </>
         )}
+
+        <input
+          ref={libraryInputRef}
+          type="file"
+          accept="image/*"
+          onChange={chooseFromLibrary}
+          style={{ display: 'none' }}
+          aria-hidden
+        />
 
         {phase === 'preview' && previewUrl && (
           <>
@@ -327,7 +386,7 @@ export function SignupSelfieStep({ userId, onComplete }: SignupSelfieStepProps) 
                 background: '#000',
                 flex: 1,
                 minHeight: 280,
-                maxHeight: 'min(62vh, 520px)',
+                maxHeight: 'min(62dvh, 520px)',
               }}
             >
               <img src={previewUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -404,7 +463,7 @@ export function LoginScreen() {
       const { error: otpErr } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: 'https://montclair-tennis-ladder.vercel.app',
+          emailRedirectTo: getAuthEmailRedirectUrl(),
           ...(isSignUp
             ? {
                 data: {

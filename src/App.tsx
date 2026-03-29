@@ -64,7 +64,14 @@ export default function App() {
   }
 
   if (!session || !user) {
-    return <LoginScreen />
+    return (
+      <>
+        <div className="status-spacer" />
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <LoginScreen />
+        </div>
+      </>
+    )
   }
 
   const isAdmin = user.profile?.is_admin ?? false
