@@ -8,23 +8,65 @@ import { ProfileScreen } from './components/screens/ProfileScreen'
 import { AdminScreen } from './components/screens/AdminScreen'
 import { TabName } from './types'
 
+/** Survives OAuth / magic-link redirects that drop `?tab=` from the URL. */
+const PENDING_TAB_STORAGE_KEY = 'mtl_pending_tab'
+
+const TAB_QUERY_VALUES: TabName[] = ['ladder', 'challenges', 'rules', 'profile', 'admin']
+
+function parseTabQuery(params: URLSearchParams): TabName | null {
+  const v = params.get('tab')
+  if (!v) return null
+  return TAB_QUERY_VALUES.includes(v as TabName) ? (v as TabName) : null
+}
+
 export default function App() {
   const { session, user, loading, refreshProfile } = useAuth()
   const [tab, setTab] = useState<TabName>('ladder')
   /** Bumping this while already on Ladder pops nested views (e.g. player profile) back to the list. */
   const [ladderPopToRoot, setLadderPopToRoot] = useState(0)
 
-  // Deep link from SMS etc.: https://…/?tab=challenges (after login, opens Challenges tab)
+  // Capture ?tab= before login (PKCE / email links often strip the query string).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = parseTabQuery(params)
+    if (t) {
+      try {
+        sessionStorage.setItem(PENDING_TAB_STORAGE_KEY, t)
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  }, [])
+
+  // After login: open tab from URL (if still present) or from sessionStorage.
   useEffect(() => {
     if (!session || !user) return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('tab') === 'challenges') {
-      setTab('challenges')
-      params.delete('tab')
-      const qs = params.toString()
-      const path = `${window.location.pathname}${qs ? `?${qs}` : ''}`
-      window.history.replaceState({}, document.title, path)
+    let target: TabName | null = parseTabQuery(params)
+    if (!target) {
+      try {
+        const stored = sessionStorage.getItem(PENDING_TAB_STORAGE_KEY) as TabName | null
+        if (stored && TAB_QUERY_VALUES.includes(stored)) target = stored
+      } catch {
+        /* ignore */
+      }
     }
+    if (!target) return
+
+    if (target === 'admin' && !(user.profile?.is_admin ?? false)) {
+      target = 'ladder'
+    }
+
+    setTab(target)
+    try {
+      sessionStorage.removeItem(PENDING_TAB_STORAGE_KEY)
+    } catch {
+      /* ignore */
+    }
+    params.delete('tab')
+    const qs = params.toString()
+    const path = `${window.location.pathname}${qs ? `?${qs}` : ''}`
+    window.history.replaceState({}, document.title, path)
   }, [session, user])
 
   // Mandatory post-signup selfie: enforced via user_metadata.requires_selfie (survives refresh /
