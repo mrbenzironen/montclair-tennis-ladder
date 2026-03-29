@@ -344,7 +344,15 @@ function AccountSubScreen({ screen, onBack }: { screen: AccountScreen; onBack: (
                   <div style={{ fontSize: 14, fontWeight: 500, color: '#201c1d' }}>Benzi</div>
                   <div style={{ fontSize: 11, color: '#aaa79f', fontWeight: 300, marginTop: 1 }}>Ladder Administrator</div>
                 </div>
-                <a href="sms:+19735550100" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '7px 12px', border: '1.5px solid #e6e4e0', background: 'transparent', color: '#201c1d', borderRadius: 4, cursor: 'pointer', textDecoration: 'none' }}>📱 Text</a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText('+19735550100').catch(() => {})
+                  }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '7px 12px', border: '1.5px solid #e6e4e0', background: 'transparent', color: '#201c1d', borderRadius: 4, cursor: 'pointer' }}
+                >
+                  Copy #
+                </button>
               </div>
             </div>
             <div style={{ margin: '12px 14px 0', background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: 14 }}>

@@ -48,7 +48,7 @@ export function PlayerProfileScreen({ player, canChallenge = true, onBack, onCha
     <div className="screen-root" style={{ background: '#f6f5f3', position: 'relative' }}>
       {/* Back bar */}
       <div style={{ background: '#201c1d', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px 12px', flexShrink: 0 }}>
-        <button onClick={onBack} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>
+        <button type="button" onClick={onBack} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>
           ←
         </button>
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
@@ -175,7 +175,11 @@ export function PlayerProfileScreen({ player, canChallenge = true, onBack, onCha
       {showFab && canChallenge && (
         <div style={{ position: 'absolute', bottom: 90, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 50 }}>
           <button
-            onClick={() => onChallenge(player)}
+            type="button"
+            onClick={e => {
+              e.preventDefault()
+              onChallenge(player)
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#201c1d', color: '#c4e012', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', padding: '14px 28px', borderRadius: 100, border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
           >
             ⚡ Challenge {player.full_name.split(' ')[0]}

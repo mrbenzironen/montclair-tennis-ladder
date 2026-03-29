@@ -84,8 +84,8 @@ export function ChallengesScreen() {
                         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, color: isWarn ? '#e0914f' : '#201c1d' }}>{tl}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
-                        <button onClick={() => handleAccept(c)} style={{ flex: 2, padding: 11, background: '#201c1d', color: '#c4e012', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✓ Accept</button>
-                        <button onClick={() => handleDecline(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Decline</button>
+                        <button type="button" onClick={() => void handleAccept(c)} style={{ flex: 2, padding: 11, background: '#201c1d', color: '#c4e012', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', border: 'none', borderRadius: 4, cursor: 'pointer' }}>✓ Accept</button>
+                        <button type="button" onClick={() => void handleDecline(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Decline</button>
                       </div>
                     </div>
                   )
@@ -116,7 +116,7 @@ export function ChallengesScreen() {
                         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 800, color: '#201c1d' }}>{tl}</div>
                       </div>
                       <div style={{ padding: '0 14px 14px' }}>
-                        <button onClick={() => handleWithdraw(c)} style={{ width: '100%', padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
+                        <button type="button" onClick={() => void handleWithdraw(c)} style={{ width: '100%', padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
                       </div>
                     </div>
                   )
@@ -152,13 +152,21 @@ export function ChallengesScreen() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 14px 10px', padding: '10px 14px', background: '#f0f8d0', borderRadius: 8, border: '1px solid #c4e012', fontSize: 12, color: '#4a6000' }}>
                           <span style={{ fontSize: 13 }}>📱</span>
                           <span style={{ flex: 1 }}>{opp.full_name.split(' ')[0]}: <strong>{opp.phone}</strong></span>
-                          <a href={`sms:${opp.phone}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', padding: '6px 10px', background: '#201c1d', color: '#c4e012', borderRadius: 4, textDecoration: 'none' }}>Text</a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(opp.phone ?? '').catch(() => {})
+                            }}
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', padding: '6px 10px', background: '#201c1d', color: '#c4e012', borderRadius: 4, border: 'none', cursor: 'pointer' }}
+                          >
+                            Copy
+                          </button>
                         </div>
                       )}
                       <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
-                        <button onClick={() => setReportChallenge(c)} style={{ flex: 1, padding: 11, background: '#c4e012', color: '#201c1d', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Report Score</button>
+                        <button type="button" onClick={() => setReportChallenge(c)} style={{ flex: 1, padding: 11, background: '#c4e012', color: '#201c1d', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', border: 'none', borderRadius: 4, cursor: 'pointer' }}>Report Score</button>
                         {isChallenger && (
-                          <button onClick={() => handleWithdraw(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
+                          <button type="button" onClick={() => void handleWithdraw(c)} style={{ flex: 1, padding: 11, background: 'transparent', color: '#aaa79f', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', border: '1.5px solid #e6e4e0', borderRadius: 4, cursor: 'pointer' }}>Withdraw</button>
                         )}
                       </div>
                     </div>

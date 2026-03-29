@@ -9,6 +9,19 @@ export const WILDCARD_CHALLENGE_RANGE = 10
 const NORMAL_RANGE = NORMAL_CHALLENGE_RANGE
 const WILDCARD_RANGE = WILDCARD_CHALLENGE_RANGE
 
+/**
+ * Optional `send-sms` Edge Function (Twilio). Never throw — core challenge/match data
+ * must succeed even when SMS is not configured or the function errors.
+ */
+async function tryNotifySmsEdge(body: Record<string, unknown>): Promise<void> {
+  try {
+    const { error } = await supabase.functions.invoke('send-sms', { body })
+    if (error) console.warn('[challenges] send-sms skipped:', error.message)
+  } catch (e) {
+    console.warn('[challenges] send-sms skipped:', e)
+  }
+}
+
 export async function sendChallenge(
   challengerId: string,
   challengedId: string,
@@ -89,12 +102,9 @@ export async function sendChallenge(
       .eq('id', challengerId)
   }
 
-  // Trigger SMS via Edge Function
-  await supabase.functions.invoke('send-sms', {
-    body: {
-      type: isWildcard ? 'wildcard_challenge' : 'challenge_received',
-      challengeId: data.id,
-    },
+  void tryNotifySmsEdge({
+    type: isWildcard ? 'wildcard_challenge' : 'challenge_received',
+    challengeId: data.id,
   })
 
   return data
@@ -121,9 +131,7 @@ export async function respondToChallenge(
 
   if (error) throw error
 
-  await supabase.functions.invoke('send-sms', {
-    body: { type: `challenge_${response}`, challengeId },
-  })
+  void tryNotifySmsEdge({ type: `challenge_${response}`, challengeId })
 }
 
 export async function withdrawChallenge(challengeId: string, challengerId: string) {
@@ -205,9 +213,7 @@ async function finalizeMatch(matchId: string) {
 
   // Wins/losses are updated by DB trigger trg_matches_record_stats (see migration 007).
 
-  await supabase.functions.invoke('send-sms', {
-    body: { type: 'match_confirmed', matchId },
-  })
+  void tryNotifySmsEdge({ type: 'match_confirmed', matchId })
 }
 
 async function updateRankings(

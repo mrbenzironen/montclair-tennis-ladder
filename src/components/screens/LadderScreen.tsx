@@ -210,7 +210,12 @@ export function LadderScreen({ ladderPopToRoot = 0 }: LadderScreenProps) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   {isEligible && !isMe && (
                     <button
-                      onClick={e => { e.stopPropagation(); setChallengeTarget(player) }}
+                      type="button"
+                      onClick={e => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setChallengeTarget(player)
+                      }}
                       style={{ fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase', padding: '7px 12px', border: '1.5px solid #201c1d', background: 'transparent', color: '#201c1d', borderRadius: 4, cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}
                     >
                       Challenge
