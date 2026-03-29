@@ -8,9 +8,7 @@ import {
 } from '../../lib/challenges'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
 import { openSmsComposer } from '../../lib/sms'
-
-const CHALLENGE_SENT_SMS_BODY =
-  'Hey! I just challenged you on the Montclair Tennis Ladder. Open the app to accept or decline: https://montclair-tennis-ladder.vercel.app'
+import { getChallengesDeepLinkUrl } from '../../lib/appUrl'
 
 interface Props {
   target: User
@@ -44,7 +42,8 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
       onSent()
       const phone = (target.phone ?? '').trim()
       if (normalizeUsPhoneE164(phone) !== null) {
-        openSmsComposer(CHALLENGE_SENT_SMS_BODY, phone)
+        const body = `Hey! I just challenged you on the Montclair Tennis Ladder. Open the app to accept or decline: ${getChallengesDeepLinkUrl()}`
+        openSmsComposer(body, phone)
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Could not send challenge')
