@@ -10,6 +10,9 @@ const TWILIO_PHONE = Deno.env.get('TWILIO_PHONE_NUMBER')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+/** Public app URL in SMS links. Override with Supabase secret APP_URL if you use a custom domain. */
+const APP_URL = (Deno.env.get('APP_URL') ?? 'https://montclair-tennis-ladder.vercel.app').replace(/\/$/, '')
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 async function sendSMS(to: string, body: string) {
@@ -63,9 +66,10 @@ serve(async (req) => {
       const name = (c.challenger as any)?.full_name
       if (phone) {
         const emoji = type === 'wildcard_challenge' ? '⚡' : '🎾'
+        const link = `${APP_URL}/?tab=challenges`
         const msg = type === 'wildcard_challenge'
-          ? `${emoji} ${name} used a Wildcard to challenge you on the Montclair Tennis Ladder! 48 hours to respond: https://montclair.tennis`
-          : `${emoji} ${name} challenged you on the Montclair Tennis Ladder! 48 hours to respond: https://montclair.tennis`
+          ? `${emoji} ${name} used a Wildcard to challenge you on the Montclair Tennis Ladder! 48 hours to respond: ${link}`
+          : `${emoji} ${name} challenged you on the Montclair Tennis Ladder! 48 hours to respond: ${link}`
         await sendSMS(phone, msg)
       }
     }
@@ -81,11 +85,11 @@ serve(async (req) => {
       const challengedName = (c.challenged as any)?.full_name
       const challengedPhone = (c.challenged as any)?.phone
       if (type === 'challenge_accepted' && challengerPhone) {
-        const msg = `✅ ${challengedName} accepted your challenge! Arrange your match within 7 days. Their number: ${challengedPhone}. https://montclair.tennis`
+        const msg = `✅ ${challengedName} accepted your challenge! Arrange your match within 7 days. Their number: ${challengedPhone}. ${APP_URL}`
         await sendSMS(challengerPhone, msg)
       }
       if (type === 'challenge_declined' && challengerPhone) {
-        const msg = `❌ ${challengedName} declined your challenge. Open the app to challenge someone else: https://montclair.tennis`
+        const msg = `❌ ${challengedName} declined your challenge. Open the app to challenge someone else: ${APP_URL}`
         await sendSMS(challengerPhone, msg)
       }
     }
@@ -104,10 +108,10 @@ serve(async (req) => {
       const loserName = (m.loser as any)?.full_name
       const score = m.winner_score != null ? ` ${m.winner_score}–${m.loser_score}` : ''
       if (winnerPhone) {
-        await sendSMS(winnerPhone, `🏆 Match confirmed — you beat ${loserName}${score}! Your new rank: #${(m.winner as any)?.rank}. https://montclair.tennis`)
+        await sendSMS(winnerPhone, `🏆 Match confirmed — you beat ${loserName}${score}! Your new rank: #${(m.winner as any)?.rank}. ${APP_URL}`)
       }
       if (loserPhone) {
-        await sendSMS(loserPhone, `🎾 Match confirmed — ${winnerName} beat you${score}. Your rank: #${(m.loser as any)?.rank}. https://montclair.tennis`)
+        await sendSMS(loserPhone, `🎾 Match confirmed — ${winnerName} beat you${score}. Your rank: #${(m.loser as any)?.rank}. ${APP_URL}`)
       }
     }
 

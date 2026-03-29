@@ -7,6 +7,10 @@ import {
   WILDCARD_CHALLENGE_RANGE,
 } from '../../lib/challenges'
 import { normalizeUsPhoneE164 } from '../../lib/phone'
+import { openSmsComposer } from '../../lib/sms'
+
+const CHALLENGE_SENT_SMS_BODY =
+  'Hey! I just challenged you on the Montclair Tennis Ladder. Open the app to accept or decline: https://montclair-tennis-ladder.vercel.app'
 
 interface Props {
   target: User
@@ -38,6 +42,10 @@ export function ChallengeSheet({ target, onClose, onSent }: Props) {
         willUseWildcard
       )
       onSent()
+      const phone = (target.phone ?? '').trim()
+      if (normalizeUsPhoneE164(phone) !== null) {
+        openSmsComposer(CHALLENGE_SENT_SMS_BODY, phone)
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Could not send challenge')
     } finally {
