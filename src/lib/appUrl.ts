@@ -2,7 +2,7 @@
 export function getAppPublicUrl(): string {
   const v = import.meta.env.VITE_PUBLIC_APP_URL
   if (typeof v === 'string' && v.trim().length > 0) return v.replace(/\/$/, '')
-  return 'https://montclair.tennis'
+  return 'https://montclair-tennis-ladder.vercel.app'
 }
 
 /**

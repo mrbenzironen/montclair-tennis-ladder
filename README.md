@@ -83,7 +83,7 @@ Your app is now live at `https://montclair-tennis-ladder.vercel.app`
 
 ### Step 2 — Add custom domain (optional)
 
-In Vercel → **Domains**, add your domain (e.g. `montclair.tennis`)
+In Vercel → **Domains**, add your domain (e.g. `montclair-tennis-ladder.vercel.app`)
 
 ---
 
@@ -107,7 +107,7 @@ Set secrets:
 supabase secrets set TWILIO_ACCOUNT_SID=ACxxxxxxxx
 supabase secrets set TWILIO_AUTH_TOKEN=your_auth_token
 supabase secrets set TWILIO_PHONE_NUMBER=+19735550100
-supabase secrets set APP_URL=https://montclair.tennis
+supabase secrets set APP_URL=https://montclair-tennis-ladder.vercel.app
 supabase secrets set RECAPTCHA_SECRET_KEY=your-google-recaptcha-v2-secret
 ```
 
