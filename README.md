@@ -49,6 +49,16 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 2. Open `supabase/migrations/001_schema.sql`
 3. Paste the entire contents and click **Run**
 
+### Pre-launch: clear test data
+
+Before launching publicly, clear old test/demo activity and non-admin test accounts:
+
+1. In Supabase, go to **SQL Editor**
+2. Open `supabase/manual/cleanup_test_data.sql`
+3. Run it once
+
+This script keeps admin users, removes non-admin player accounts, and clears matches/challenges/invites/broadcasts so you start with a clean ladder.
+
 ### Step 5 — Enable Auth providers
 
 In Supabase → **Authentication → Providers**:
